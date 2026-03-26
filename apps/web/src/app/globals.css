@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--color-zinc-950);
+  --color-foreground: var(--color-zinc-50);
+  --color-card: var(--color-zinc-900);
+  --color-card-foreground: var(--color-zinc-50);
+  --color-muted: var(--color-zinc-800);
+  --color-muted-foreground: var(--color-zinc-400);
+  --color-border: var(--color-zinc-800);
+  --color-accent: var(--color-zinc-800);
+  --color-accent-foreground: var(--color-zinc-50);
+  --color-primary: var(--color-blue-500);
+  --color-primary-foreground: var(--color-zinc-950);
+  --color-destructive: var(--color-red-500);
+  --color-ring: var(--color-blue-500);
+  --radius: 0.75rem;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-zinc-700);
+  border-radius: 3px;
+}
