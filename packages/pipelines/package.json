@@ -1,0 +1,17 @@
+{
+  "name": "@influenceai/pipelines",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@trigger.dev/sdk": "^3.0.0",
+    "@influenceai/core": "workspace:*",
+    "@influenceai/database": "workspace:*",
+    "@influenceai/integrations": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

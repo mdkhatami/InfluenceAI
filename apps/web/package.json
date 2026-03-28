@@ -32,6 +32,8 @@
     "@radix-ui/react-avatar": "^1.1.2",
     "@influenceai/core": "workspace:*",
     "@influenceai/integrations": "workspace:*",
+    "@influenceai/pipelines": "workspace:*",
+    "@influenceai/database": "workspace:*",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
