@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,6 +17,7 @@ import {
   Settings,
   Sparkles,
   User,
+  LogOut,
 } from 'lucide-react';
 
 const navItems = [
@@ -30,8 +33,51 @@ const bottomNavItems = [
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
+interface UserInfo {
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}
+
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        if (data.user) {
+          setUser({
+            email: data.user.email || '',
+            name:
+              data.user.user_metadata?.full_name ||
+              data.user.user_metadata?.name ||
+              data.user.email?.split('@')[0] ||
+              'Operator',
+            avatarUrl: data.user.user_metadata?.avatar_url,
+          });
+        }
+      } catch {
+        // Supabase not configured — show default
+      }
+    }
+    loadUser();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch {
+      router.push('/login');
+    }
+  };
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -63,7 +109,7 @@ export function Sidebar() {
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 active
                   ? 'bg-zinc-800 text-zinc-50 border-l-2 border-blue-500 pl-[10px]'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50',
               )}
             >
               <Icon className={cn('h-4 w-4', active ? 'text-blue-400' : '')} />
@@ -87,7 +133,7 @@ export function Sidebar() {
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 active
                   ? 'bg-zinc-800 text-zinc-50 border-l-2 border-blue-500 pl-[10px]'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50',
               )}
             >
               <Icon className={cn('h-4 w-4', active ? 'text-blue-400' : '')} />
@@ -100,15 +146,35 @@ export function Sidebar() {
       {/* User Area */}
       <div className="border-t border-zinc-800 p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500">
-            <User className="h-4 w-4 text-white" />
-          </div>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="h-9 w-9 rounded-full"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500">
+              <User className="h-4 w-4 text-white" />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-zinc-50 truncate">AI Operator</p>
-            <Badge variant="secondary" className="mt-0.5 text-[10px] px-1.5 py-0">
-              Solo Mode
-            </Badge>
+            <p className="text-sm font-medium text-zinc-50 truncate">
+              {user?.name || 'AI Operator'}
+            </p>
+            <p className="text-[10px] text-zinc-500 truncate">
+              {user?.email || 'Not signed in'}
+            </p>
           </div>
+          {user && (
+            <button
+              onClick={handleSignOut}
+              className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </aside>
