@@ -1,11 +1,11 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   return (
@@ -16,38 +16,50 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const errorParam = searchParams.get('error');
   const redirect = searchParams.get('redirect') || '/';
 
-  const handleGoogleLogin = async () => {
+  const errorMessages: Record<string, string> = {
+    unauthorized: 'Access denied. Your email is not authorized to use this dashboard.',
+    auth_failed: 'Authentication failed. Please try again.',
+    config: 'Authentication is not configured. Check Supabase settings.',
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
-        },
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
       if (authError) {
         setError(authError.message);
         setLoading(false);
+        return;
       }
+
+      router.push(redirect);
+      router.refresh();
     } catch {
-      setError('Failed to initialize authentication. Check Supabase configuration.');
+      setError('Failed to sign in. Check your connection and try again.');
       setLoading(false);
     }
   };
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900/80 backdrop-blur-sm shadow-2xl shadow-black/40">
+    <Card className="border-zinc-800 bg-zinc-900/80 backdrop-blur-sm shadow-2xl shadow-black/40 w-full max-w-sm">
       <CardContent className="p-8">
         <div className="space-y-2 text-center mb-8">
           <h2 className="text-xl font-semibold text-zinc-50">Welcome back</h2>
@@ -55,51 +67,69 @@ function LoginForm() {
         </div>
 
         {/* Error Messages */}
-        {(errorParam === 'unauthorized' || error) && (
+        {(errorParam || error) && (
           <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
             <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-400" />
             <p className="text-sm text-red-400">
-              {errorParam === 'unauthorized'
-                ? 'Access denied. Your email is not authorized to use this dashboard.'
-                : error}
+              {errorParam ? (errorMessages[errorParam] || 'An error occurred.') : error}
             </p>
           </div>
         )}
 
-        {/* Google Sign In */}
-        <Button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full gap-3 bg-white text-zinc-900 hover:bg-zinc-100 h-12 text-sm font-medium"
-        >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <svg className="h-5 w-5" viewBox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                fill="#4285F4"
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium text-zinc-300">
+              Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-10 pr-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium text-zinc-300">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-10 pr-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
-          )}
-          {loading ? 'Signing in...' : 'Continue with Google'}
-        </Button>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full gap-2 bg-violet-600 hover:bg-violet-500 h-11 text-sm font-medium mt-2"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Lock className="h-4 w-4" />
+            )}
+            {loading ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </form>
 
         <div className="mt-6 text-center">
           <p className="text-xs text-zinc-500">
-            Access is restricted to authorized accounts only.
+            Access is restricted to invited accounts only.
           </p>
         </div>
       </CardContent>
