@@ -1,14 +1,12 @@
 export type Platform = 'linkedin' | 'instagram' | 'youtube' | 'twitter';
 
 export type ContentStatus =
-  | 'draft'
-  | 'in_review'
-  | 'revision_requested'
+  | 'pending_review'
   | 'approved'
   | 'scheduled'
   | 'published'
   | 'rejected'
-  | 'archived';
+  | 'replaced';
 
 export type ContentFormat =
   | 'text_post'
@@ -33,6 +31,19 @@ export interface ContentItem {
   publishedAt?: string;
   publishedUrl?: string;
   metadata: Record<string, unknown>;
+  signalId?: string;
+  pipelineRunId?: string;
+  promptTemplateId?: string;
+  generationModel?: string;
+  qualityScore?: number;
+  rejectionReason?: string;
+  replacesId?: string;
+  replacedById?: string;
+  tokenUsage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
   engagement?: {
     views: number;
     likes: number;

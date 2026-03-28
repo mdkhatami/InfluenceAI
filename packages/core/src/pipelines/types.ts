@@ -1,6 +1,6 @@
 import type { AutomationLevel } from '../pillars/types';
 
-export type PipelineStatus = 'idle' | 'running' | 'success' | 'failed' | 'disabled';
+export type PipelineStatus = 'idle' | 'running' | 'success' | 'failed' | 'disabled' | 'partial_success';
 
 export interface PipelineStep {
   id: string;
