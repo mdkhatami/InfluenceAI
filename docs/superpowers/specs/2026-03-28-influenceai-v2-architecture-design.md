@@ -99,6 +99,40 @@ Trigger.dev cron fires on schedule
 | Content formats | LinkedIn + Twitter + Instagram carousel outlines | Text-only for now, multimedia later |
 | Review workflow | Dashboard-only (Telegram bot later) | Simplest to build, sufficient for solo use |
 
+### Trigger.dev integration details
+
+Trigger.dev v3 runs as part of the Next.js app. Setup:
+
+1. Install `@trigger.dev/sdk` in `packages/pipelines`
+2. Create `trigger.config.ts` at monorepo root pointing to task files in `packages/pipelines/src/tasks/`
+3. Required env vars: `TRIGGER_SECRET_KEY` (from Trigger.dev dashboard), `TRIGGER_PROJECT_ID`
+4. In development: run `npx trigger dev` alongside `pnpm dev` — it connects to Trigger.dev cloud and registers tasks
+5. In production: `npx trigger deploy` during Vercel build, or configure Trigger.dev GitHub integration for auto-deploy
+6. Manual triggers from API routes: import the task and call `myTask.trigger({ pipelineId })` from the route handler
+
+Tasks are defined as Trigger.dev `task()` functions in `packages/pipelines/src/tasks/`. Each task wraps the shared `runPipeline()` engine with pipeline-specific config. Schedules are defined using Trigger.dev's `schedules.task()` API directly in the task file.
+
+### Daily operator workflow
+
+A typical day using InfluenceAI:
+
+**Morning (~5 min):**
+1. Open Command Center → see pipeline health strip (all green? any failures overnight?)
+2. Check pending review count badge → click to open Review Queue
+3. Review queue sorted by quality score (highest first). Use keyboard shortcuts: j/k to navigate, a to approve, e to edit, r to reject
+4. Approve 5-10 high-quality items, edit 2-3, reject the rest
+5. Approved items auto-suggest optimal schedule times
+
+**Midday (~2 min):**
+1. Check Schedule page → confirm today's posts are ready
+2. Open each scheduled item → copy content → paste to LinkedIn/Twitter/Instagram
+3. Mark as published in dashboard
+
+**Weekly (~10 min):**
+1. Check Analytics → which pipelines produce content you actually use?
+2. If a pipeline has low approval rate → tweak its prompt template in Settings
+3. Check Signal source quality → are some sources generating noise?
+
 ---
 
 ## 3. Monorepo Structure (After Refactor)
@@ -225,7 +259,11 @@ interface PipelineDefinition {
     topK: number                       // how many top signals to generate content for
   }
 
-  // Optional custom steps for multimedia pipelines:
+  // Optional custom steps for multimedia pipelines.
+  // DEFINED in types but NOT EXECUTED by the engine in v2.
+  // The engine ignores this field until multimedia support is implemented.
+  // Keeping it in the interface so pipeline definitions can declare future steps
+  // without breaking when the engine is upgraded.
   customSteps?: CustomStep[]
 }
 
@@ -276,24 +314,29 @@ async function runPipeline(definition: PipelineDefinition): Promise<PipelineRunR
   //    - Take top K signals based on score
   //    - Log step
 
-  // 4. GENERATE step (per signal, per platform)
+  // 4. GENERATE step (per signal, per platform — sequential to avoid LLM bursting)
   //    - Load prompt template from DB (fall back to pillar registry default)
-  //    - For each top signal × each platform:
-  //      - Build prompt: template + signal data + platform format instructions
-  //      - Call LLM client with generation config
-  //      - Save content_item (status: 'pending_review', platform, pillar, pipeline_run_id)
-  //    - Log step with token usage
+  //    - For each top signal (sequentially):
+  //      - For each platform:
+  //        - Build prompt: template + signal data + platform format instructions
+  //        - Call LLM client with generation config
+  //        - LLM returns: content text + quality score (1-10) via structured output
+  //        - Save content_item (status: 'pending_review', quality_score, platform, pillar, pipeline_run_id)
+  //      - If generation fails for this signal: log error, continue to next signal
+  //    - Log step with total token usage
 
-  // 5. Run any custom steps (if defined)
+  // 5. FINALIZE
+  //    - Update pipeline_run: status='completed' (or 'partial_success' if some signals failed)
+  //    - Record counts: signals_ingested, signals_filtered, items_generated
+  //    - All content items are now visible in the review queue, sorted by quality_score
 
-  // 6. FINALIZE
-  //    - Update pipeline_run: status='completed', counts, duration
-  //    - All content items are now visible in the review queue
-
-  // On any step failure:
-  //    - Trigger.dev retries the step (configurable per step)
+  // On step-level failure:
+  //    - Trigger.dev retries the step (configurable, default: 2)
   //    - If all retries exhausted: mark pipeline_run as 'failed', log error
   //    - Previously completed steps are NOT re-run (durable)
+  // On signal-level failure (within GENERATE):
+  //    - Log the error, skip that signal, continue with remaining signals
+  //    - Run marked 'partial_success' instead of 'failed'
 }
 ```
 
@@ -306,8 +349,12 @@ async function runPipeline(definition: PipelineDefinition): Promise<PipelineRunR
 | Logging | Every step writes to `pipeline_logs` with timing, status, error details |
 | Run tracking | `pipeline_runs` record created at start, updated at end with counts and duration |
 | Signal dedup | SHA-256 hash of `source_type + source_id + title` stored in `content_signals.dedup_hash` |
+| Signal staleness | Each source type has a max-age config (default: 48h for news, 7d for papers/repos). Signals older than max-age are dropped during filtering. Prevents stale content entering the review queue. |
 | Multi-format gen | Engine loops over `platforms[]` array, generates content per platform using platform-specific prompt template |
+| LLM rate limiting | Generation step processes signals sequentially (not in parallel) to avoid bursting the LLM endpoint. Configurable concurrency limit (default: 1). Token usage accumulated per run and logged. |
+| Quality scoring | During generation, the LLM also outputs a self-assessed quality score (1-10) via structured output. Stored in `content_items.quality_score`. Review queue sorted by quality descending — best content reviewed first. |
 | Error isolation | Each step is independent. Ingest failure doesn't block a retry. Generate failure for one signal doesn't block others. |
+| Partial failure | If generation succeeds for 3 of 5 signals, the 3 successful items go to review normally. The run is marked `partial_success` (not `failed`). Failed signals are logged with error details for debugging. |
 | Model-per-step | Filter step uses `generate.filterModel` (cheap), generation uses `generate.model` (powerful) |
 
 ### 4.4 Adding a new pipeline (checklist)
@@ -360,6 +407,10 @@ const autoPodcastPipeline: PipelineDefinition = {
 - `prompt_template_id` — FK to `prompt_templates.id` (which template was used)
 - `generation_model` — text. Which LLM model generated this content.
 - `token_usage` — JSONB. `{ promptTokens, completionTokens, totalTokens }`
+- `quality_score` — integer (1-10). LLM self-assessed quality during generation. Used to sort review queue.
+- `rejection_reason` — text, nullable. Set when content is rejected from review queue.
+- `replaces_id` — FK to `content_items.id`, nullable. Points to the item this was regenerated from.
+- `replaced_by_id` — FK to `content_items.id`, nullable. Points to the item that replaced this one.
 
 Design: one row per platform output. A single signal can produce 3 `content_items` (one per platform).
 
@@ -375,22 +426,11 @@ Design: one row per platform output. A single signal can produce 3 `content_item
 
 ### 5.2 New tables
 
-**`pipeline_schedules`**
+**`pipeline_schedules`** — DEFERRED to Phase 5.
 
-This table is the **dashboard's view** of pipeline schedules. Trigger.dev is the actual scheduler. When a user edits a schedule in the Settings page, the API route updates both this table and the Trigger.dev schedule via API. The `last_run_at` and `next_run_at` fields are updated after each pipeline run completes.
+For v2, schedules are defined in pipeline definition configs (code) and registered directly with Trigger.dev. The dashboard reads schedule info from the pipeline registry, and last-run info from `pipeline_runs`. This avoids the maintenance burden of keeping a DB table in sync with Trigger.dev.
 
-```sql
-CREATE TABLE pipeline_schedules (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pipeline_id TEXT NOT NULL UNIQUE,
-  cron_expression TEXT NOT NULL,
-  enabled BOOLEAN NOT NULL DEFAULT true,
-  last_run_at TIMESTAMPTZ,
-  next_run_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
+In Phase 5, if editing schedules from the UI becomes important, this table will be introduced along with the sync logic.
 
 **`prompt_templates`**
 ```sql
@@ -456,6 +496,19 @@ interface Signal {
 | **ArXiv** | `http://export.arxiv.org/api/query` | None | 1 req/3 sec | Recent cs.AI + cs.LG papers with title, abstract, authors |
 | **Reddit** | `https://www.reddit.com/r/{sub}/hot.json` | None (public JSON) | Respect rate headers | Hot posts from r/MachineLearning, r/artificial, r/LocalLLaMA |
 | **Hugging Face** | `https://huggingface.co/api/trending` | None | Reasonable | Trending models, papers, spaces with metadata |
+
+### Signal staleness defaults
+
+| Source | Max age | Rationale |
+|---|---|---|
+| GitHub Trending | 48 hours | Repos cycle off trending quickly |
+| RSS Feeds | 72 hours | Blog posts stay relevant a few days |
+| HackerNews | 24 hours | News cycle is fast |
+| ArXiv | 7 days | Papers stay relevant longer |
+| Reddit | 48 hours | Posts drop off front page fast |
+| Hugging Face | 72 hours | Models trend for a few days |
+
+These are configurable per pipeline definition. The filter step drops signals older than max-age before scoring.
 
 ### RSS feed list (default, configurable from Settings)
 
@@ -668,7 +721,17 @@ Signal ingested (content_signals)
   → Human publishes manually (status: 'published', published_at set)
 ```
 
-### Status enum
+### Regeneration flow
+
+When the user clicks "Regenerate" on a review item:
+1. The old `content_item` is marked `status: 'replaced'` and `replaced_by_id` is set to the new item's ID
+2. A new LLM call is made using the same signal but the current active prompt template (which may have been edited since the original generation)
+3. The new `content_item` is created with `status: 'pending_review'`, `signal_id` pointing to the same signal, and `replaces_id` pointing to the old item
+4. The new item appears at the top of the review queue
+
+This means the user can iterate: generate → reject → tweak prompt in Settings → regenerate → approve. The chain of replacements is tracked for analytics.
+
+### Content status enum
 
 ```typescript
 type ContentStatus =
@@ -680,16 +743,27 @@ type ContentStatus =
   | 'replaced'         // superseded by a regenerated version
 ```
 
+### Pipeline run status enum
+
+```typescript
+type PipelineRunStatus =
+  | 'running'          // currently executing
+  | 'completed'        // all steps succeeded
+  | 'partial_success'  // some signals generated, some failed
+  | 'failed'           // all retries exhausted, no content produced
+```
+
 ---
 
 ## 10. Phased Implementation Plan (High Level)
 
 ### Phase 1: Foundation Refactor
 - Restructure monorepo (add `packages/pipelines`, reorganize `packages/integrations`)
-- Update database schema (migration 00002)
-- Add RLS policies
+- Update database schema (migration 00002: new columns on existing tables + `prompt_templates` table)
+- Add RLS policies to all tables
 - Set up `packages/database` client helpers and typed query functions
-- Set up Trigger.dev project and configuration
+- Set up Trigger.dev: create project in dashboard, install SDK in `packages/pipelines`, add `trigger.config.ts`, configure `TRIGGER_SECRET_KEY` and `TRIGGER_PROJECT_ID` env vars in Vercel
+- Seed `prompt_templates` table with default templates from current pillar registry
 
 ### Phase 2: Pipeline Engine
 - Build the core engine (`runPipeline`, step executor, logging, dedup)
