@@ -1,2 +1,2 @@
-// Pipeline engine exports - will be populated as modules are built
-export {};
+export { runPipeline } from './engine/runner';
+export { deduplicateSignals } from './engine/dedup';
