@@ -1,37 +1,57 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
-// Mock content store (replace with Supabase in production)
-const mockContent = [
-  {
-    id: '1',
-    title: '3 AI Repos Blowing Up on GitHub Right Now',
-    body: 'Everyone is talking about the latest AI frameworks...',
-    pillarSlug: 'breaking-ai-news',
-    pipelineSlug: 'github-trends',
-    platform: 'linkedin',
-    format: 'text_post',
-    status: 'published',
-    publishedAt: new Date(Date.now() - 86400000).toISOString(),
-    metadata: {},
-    engagement: { views: 12500, likes: 340, comments: 47, shares: 89 },
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') ?? undefined;
+    const pillar = searchParams.get('pillar') ?? undefined;
+    const platform = searchParams.get('platform') ?? undefined;
+    const search = searchParams.get('search') ?? undefined;
+    const limit = parseInt(searchParams.get('limit') ?? '20', 10);
+    const offset = parseInt(searchParams.get('offset') ?? '0', 10);
 
-export async function GET() {
-  return NextResponse.json({ content: mockContent });
+    const supabase = await createClient();
+    let query = supabase
+      .from('content_items')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    if (status) query = query.eq('status', status);
+    if (pillar) query = query.eq('pillar_slug', pillar);
+    if (platform) query = query.eq('platform', platform);
+    if (search) query = query.ilike('title', `%${search}%`);
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, count, error } = await query;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ items: data ?? [], total: count ?? 0 });
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const newItem = {
-    id: crypto.randomUUID(),
-    ...body,
-    status: 'draft',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  mockContent.push(newItem);
-  return NextResponse.json({ content: newItem }, { status: 201 });
+  try {
+    const body = await request.json();
+    const supabase = await createClient();
+
+    const newItem = {
+      ...body,
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('content_items')
+      .insert(newItem)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ content: data }, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: 'Failed to create content' }, { status: 500 });
+  }
 }
