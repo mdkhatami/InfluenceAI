@@ -16,3 +16,4 @@ export {
 export { type SignalAdapter, type AdapterConfig } from './sources/types';
 export { GitHubSignalAdapter } from './sources/github';
 export { RSSSignalAdapter } from './sources/rss';
+export { HackerNewsSignalAdapter } from './sources/hackernews';
