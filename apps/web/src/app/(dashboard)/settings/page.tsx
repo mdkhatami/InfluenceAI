@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { cn, getPillarColor } from '@/lib/utils';
 import { IntegrationConfigDialog } from '@/components/settings/integration-config-dialog';
+import { PromptTemplateEditor } from '@/components/settings/prompt-template-editor';
 import {
   Sparkles,
   GitBranch,
@@ -261,6 +262,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="pillars">Content Pillars</TabsTrigger>
+          <TabsTrigger value="templates">Prompt Templates</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
         </TabsList>
 
@@ -387,6 +389,11 @@ export default function SettingsPage() {
               ))}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Prompt Templates Tab */}
+        <TabsContent value="templates" className="pt-4">
+          <PromptTemplateEditor />
         </TabsContent>
 
         {/* General Tab */}

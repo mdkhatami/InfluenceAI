@@ -61,3 +61,62 @@ export async function insertPromptTemplate(
   if (error) throw new Error(`Failed to insert prompt template: ${error.message}`);
   return data!.id;
 }
+
+export interface PromptTemplateRow {
+  id: string;
+  pillar_id: string;
+  platform: string;
+  template_type: string;
+  system_prompt: string;
+  user_prompt_template: string;
+  model_override: string | null;
+  version: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listActiveTemplates(
+  client: SupabaseClient,
+): Promise<PromptTemplateRow[]> {
+  const { data, error } = await client
+    .from('prompt_templates')
+    .select('*')
+    .eq('is_active', true)
+    .order('pillar_id', { ascending: true })
+    .order('platform', { ascending: true });
+  if (error) throw new Error(`Failed to list templates: ${error.message}`);
+  return (data ?? []) as PromptTemplateRow[];
+}
+
+export async function getTemplateVersions(
+  client: SupabaseClient,
+  pillarId: string,
+  platform: Platform,
+  templateType: string = 'generation',
+): Promise<PromptTemplateRow[]> {
+  const { data, error } = await client
+    .from('prompt_templates')
+    .select('*')
+    .eq('pillar_id', pillarId)
+    .eq('platform', platform)
+    .eq('template_type', templateType)
+    .order('version', { ascending: false });
+  if (error) throw new Error(`Failed to get template versions: ${error.message}`);
+  return (data ?? []) as PromptTemplateRow[];
+}
+
+export async function deactivateTemplates(
+  client: SupabaseClient,
+  pillarId: string,
+  platform: Platform,
+  templateType: string = 'generation',
+): Promise<void> {
+  const { error } = await client
+    .from('prompt_templates')
+    .update({ is_active: false })
+    .eq('pillar_id', pillarId)
+    .eq('platform', platform)
+    .eq('template_type', templateType);
+  if (error) throw new Error(`Failed to deactivate templates: ${error.message}`);
+}
