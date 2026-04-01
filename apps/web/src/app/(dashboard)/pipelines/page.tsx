@@ -1,12 +1,12 @@
-'use client';
-
 import Link from 'next/link';
 import { PIPELINES } from '@influenceai/core';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/dashboard/stats-card';
+import { PipelineTrigger } from '@/components/dashboard/pipeline-trigger';
 import { cn, getAutomationColor, getRelativeTime } from '@/lib/utils';
+import { getLastRunPerPipeline, getPipelineStats } from '@/lib/queries/pipelines';
 import {
   GitBranch,
   Radio,
@@ -20,7 +20,6 @@ import {
   Activity,
   CheckCircle,
   FileText,
-  Play,
   Settings,
 } from 'lucide-react';
 
@@ -33,17 +32,6 @@ const automationLabels: Record<string, string> = {
   medium: 'Medium Automation',
   low: 'Low Automation',
   manual: 'Manual',
-};
-
-const pipelineRuntimeData: Record<string, { status: 'idle' | 'running' | 'success' | 'failed'; lastRunAt: string }> = {
-  'github-trends': { status: 'success', lastRunAt: new Date(Date.now() - 2 * 3600000).toISOString() },
-  'signal-amplifier': { status: 'running', lastRunAt: new Date(Date.now() - 10 * 60000).toISOString() },
-  'release-radar': { status: 'failed', lastRunAt: new Date(Date.now() - 5 * 3600000).toISOString() },
-  'youtube-series': { status: 'idle', lastRunAt: new Date(Date.now() - 72 * 3600000).toISOString() },
-  'weekly-strategy': { status: 'success', lastRunAt: new Date(Date.now() - 24 * 3600000).toISOString() },
-  'auto-podcast': { status: 'success', lastRunAt: new Date(Date.now() - 48 * 3600000).toISOString() },
-  'infographic-factory': { status: 'success', lastRunAt: new Date(Date.now() - 6 * 3600000).toISOString() },
-  'digital-twin': { status: 'success', lastRunAt: new Date(Date.now() - 8 * 3600000).toISOString() },
 };
 
 const statusDot: Record<string, string> = {
@@ -60,7 +48,33 @@ const statusLabel: Record<string, string> = {
   failed: 'Last run failed',
 };
 
-export default function PipelinesPage() {
+function mapRunStatus(dbStatus?: string): 'idle' | 'running' | 'success' | 'failed' {
+  if (!dbStatus) return 'idle';
+  if (dbStatus === 'completed' || dbStatus === 'partial_success') return 'success';
+  if (dbStatus === 'running') return 'running';
+  if (dbStatus === 'failed') return 'failed';
+  return 'idle';
+}
+
+export default async function PipelinesPage() {
+  let lastRuns: Record<string, { status: string; created_at: string; started_at?: string }> = {};
+  let pipelineStats = { totalRuns: 0, successRate: 0, totalGenerated: 0 };
+
+  try {
+    [lastRuns, pipelineStats] = await Promise.all([
+      getLastRunPerPipeline(),
+      getPipelineStats(),
+    ]);
+  } catch (e) {
+    // Fallback to defaults on error
+  }
+
+  const activeToday = Object.values(lastRuns).filter((run) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(run.created_at).getTime() >= today.getTime();
+  }).length;
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -71,17 +85,19 @@ export default function PipelinesPage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Total Pipelines" value="8" change="All configured" changeType="neutral" icon={Layers} />
-        <StatsCard title="Active Today" value="5" change="+2 from yesterday" changeType="positive" icon={Activity} />
-        <StatsCard title="Success Rate" value="94.2%" change="+1.3% this week" changeType="positive" icon={CheckCircle} />
-        <StatsCard title="Content Generated" value="156" change="+23 this week" changeType="positive" icon={FileText} />
+        <StatsCard title="Total Pipelines" value={String(PIPELINES.length)} change="All configured" changeType="neutral" icon={Layers} />
+        <StatsCard title="Active Today" value={String(activeToday)} change="Runs since midnight" changeType="neutral" icon={Activity} />
+        <StatsCard title="Success Rate" value={pipelineStats.totalRuns > 0 ? `${pipelineStats.successRate}%` : '--'} change={`${pipelineStats.totalRuns} total runs`} changeType="neutral" icon={CheckCircle} />
+        <StatsCard title="Content Generated" value={String(pipelineStats.totalGenerated)} change="All time" changeType="neutral" icon={FileText} />
       </div>
 
       {/* Pipeline Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {PIPELINES.map((pipeline) => {
           const Icon = iconMap[pipeline.icon] || GitBranch;
-          const runtime = pipelineRuntimeData[pipeline.slug];
+          const run = lastRuns[pipeline.slug];
+          const status = mapRunStatus(run?.status);
+          const lastRunAt = run?.started_at ?? run?.created_at;
           const isGithubTrends = pipeline.slug === 'github-trends';
 
           return (
@@ -118,19 +134,21 @@ export default function PipelinesPage() {
                 </p>
 
                 {/* Status */}
-                {runtime && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <div className={cn('h-2 w-2 rounded-full', statusDot[runtime.status])} />
-                    <span className="text-xs text-zinc-400">{statusLabel[runtime.status]}</span>
-                    <span className="text-xs text-zinc-600">&middot;</span>
-                    <span className="text-xs text-zinc-500">{getRelativeTime(runtime.lastRunAt)}</span>
-                  </div>
-                )}
+                <div className="mt-4 flex items-center gap-2">
+                  <div className={cn('h-2 w-2 rounded-full', statusDot[status])} />
+                  <span className="text-xs text-zinc-400">{statusLabel[status]}</span>
+                  {lastRunAt && (
+                    <>
+                      <span className="text-xs text-zinc-600">&middot;</span>
+                      <span className="text-xs text-zinc-500">{getRelativeTime(lastRunAt)}</span>
+                    </>
+                  )}
+                </div>
 
                 {/* Steps Preview */}
                 <div className="mt-4 flex items-center gap-1">
                   <span className="mr-2 text-xs text-zinc-500">{pipeline.steps.length} steps</span>
-                  {pipeline.steps.map((step, i) => (
+                  {pipeline.steps.map((step) => (
                     <div
                       key={step.id}
                       className={cn(
@@ -162,10 +180,9 @@ export default function PipelinesPage() {
                     Configure
                   </Button>
                 )}
-                <Button variant="secondary" size="sm" className="flex-1">
-                  <Play className="mr-2 h-3 w-3" />
-                  Run Now
-                </Button>
+                <div className="flex-1">
+                  <PipelineTrigger pipelineSlug={pipeline.slug} />
+                </div>
               </CardFooter>
             </Card>
           );
