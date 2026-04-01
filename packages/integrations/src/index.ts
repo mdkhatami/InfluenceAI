@@ -15,3 +15,4 @@ export {
 } from './github/prompts';
 export { type SignalAdapter, type AdapterConfig } from './sources/types';
 export { GitHubSignalAdapter } from './sources/github';
+export { RSSSignalAdapter } from './sources/rss';

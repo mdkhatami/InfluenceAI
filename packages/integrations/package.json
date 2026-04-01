@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@influenceai/core": "workspace:*",
+    "fast-xml-parser": "^5.5.9",
     "openai": "^4.80.0",
     "zod": "^3.24.0"
   },
