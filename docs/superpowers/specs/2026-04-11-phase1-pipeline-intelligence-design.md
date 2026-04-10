@@ -85,15 +85,19 @@ Each pipeline definition can override this. Default is 3 (permissive — catches
 In `packages/pipelines/src/engine/runner.ts`, after the dedup step and before the filter step, add:
 
 ```typescript
-// Score relevance
+// Score relevance (insert after dedup, before filter — around line 89 of runner.ts)
 await logPipelineStep(db, runId, 'relevance', 'info', `Scoring ${newSignals.length} signals for AI relevance`);
 const relevantSignals = scoreRelevance(newSignals, definition.relevanceThreshold ?? 3);
 await logPipelineStep(db, runId, 'relevance', 'info', `${relevantSignals.length} signals passed relevance check (${newSignals.length - relevantSignals.length} dropped)`);
+
+// IMPORTANT: The existing filter step (line 92) currently calls `definition.filter(newSignals, {})`.
+// After inserting this step, change it to `definition.filter(relevantSignals, {})` so that
+// the filter operates on relevance-checked signals, not the raw deduped set.
 ```
 
 ### GitHub Trends URL Fix
 
-The `scrapeGitHubTrending()` function in `packages/integrations/src/github/client.ts` still captures non-repo paths like `sponsors/obra`. Add a validation: the `fullName` must match the pattern `owner/repo` where both parts are non-empty and don't contain special characters. Skip entries that look like profile pages, sponsor pages, or other non-repo paths.
+The `scrapeGitHubTrending()` function in `packages/integrations/src/github/client.ts` (private/non-exported, line 60) still captures non-repo paths like `sponsors/obra`. The existing guard (line 102: `if (fullName.startsWith('login') || !fullName.includes('/')) continue;`) catches login redirects but not `sponsors/*`. Strengthen the validation: the `fullName` must have exactly 2 segments when split by `/`, both non-empty, and not match known non-repo prefixes (`sponsors`, `orgs`, `settings`, `login`). Skip entries that look like profile pages, sponsor pages, or other non-repo paths.
 
 ## Cleanup
 

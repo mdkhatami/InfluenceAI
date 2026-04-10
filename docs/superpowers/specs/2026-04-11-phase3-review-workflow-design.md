@@ -29,12 +29,16 @@ This is the feature that makes the whole system useful. Everything before this (
 
 **Server component** that queries:
 ```typescript
-const item = await getContentItem(id);
-// Returns content_items row joined with content_signals via signal_id
-// Already exists in apps/web/src/lib/queries/content.ts
+// getContentItem uses .single() which throws on not-found (not returns null)
+// Wrap in try/catch and call notFound() on error
+try {
+  const item = await getContentItem(id);
+  // Returns content_items row joined with content_signals via signal_id
+  // Already exists in apps/web/src/lib/queries/content.ts
+} catch {
+  return notFound();
+}
 ```
-
-If `item` is null, return `notFound()`.
 
 ### Layout — Two-Column
 
@@ -108,16 +112,13 @@ Shortcuts only active when no input/textarea is focused.
 **Current**: Accepts `{ status, body, rejectionReason }`
 
 **Extend to also accept**:
-- `title` (string) — update title
 - `publishedAt` (ISO string) — set published timestamp when marking as published
 
-The route already exists at `apps/web/src/app/api/content/[id]/route.ts`. The `updateContentStatus` function in `packages/database/src/queries/content-items.ts` needs to support updating `title`, `body`, and `published_at`.
+The route already exists at `apps/web/src/app/api/content/[id]/route.ts`. It already handles `title`, `body`, `status`, `scheduledAt`, and `rejectionReason` (lines 34-39). Just add the `publishedAt` → `published_at` mapping. The `updateContentStatus` function in `packages/database/src/queries/content-items.ts` also needs extending to support `title`, `body`, and `publishedAt` in its `extra` parameter.
 
-### Existing endpoint — extend `GET /api/content/[id]`
+### Existing endpoint — `GET /api/content/[id]`
 
-**Current**: The route file exists but only handles PUT.
-
-**Add GET handler**: Returns the full content item joined with its signal. Uses `getContentItem(id)` from `apps/web/src/lib/queries/content.ts` (already exists).
+**Already exists** at `apps/web/src/app/api/content/[id]/route.ts` (lines 4-23). Returns the content item joined with `content_signals` via `.select('*, content_signals(*)')`. No changes needed — the page server component can use `getContentItem(id)` from `apps/web/src/lib/queries/content.ts` directly (no API call needed for server components).
 
 ### New: Navigation query
 
@@ -140,15 +141,17 @@ export async function getAdjacentPendingItems(currentId: string): Promise<{
 
 ### Extend `updateContentStatus` in `packages/database/src/queries/content-items.ts`
 
-**Current signature**:
+**Current signature** (in `packages/database/src/queries/content-items.ts`, line 48):
 ```typescript
 export async function updateContentStatus(
   client: SupabaseClient,
   itemId: string,
-  status: string,
+  status: ContentStatus,  // NOTE: typed union from @influenceai/core, not a plain string
   extra?: { rejectionReason?: string; replacedById?: string; scheduledAt?: string }
 )
 ```
+
+`ContentStatus` includes: `'pending_review' | 'approved' | 'scheduled' | 'published' | 'rejected' | 'replaced'`. The `'published'` value is already valid.
 
 **Extended**: Add `title`, `body`, `publishedAt` to the `extra` parameter:
 ```typescript
@@ -164,7 +167,7 @@ extra?: {
 
 The function builds an update object from whatever fields are present in `extra`, then runs `.update()`.
 
-No schema changes needed — all columns already exist in `content_items`.
+No schema changes needed — all columns already exist in `content_items` (some via v2 migration `00002_v2_schema_updates.sql`: `quality_score`, `rejection_reason`, `pipeline_run_id`).
 
 ---
 

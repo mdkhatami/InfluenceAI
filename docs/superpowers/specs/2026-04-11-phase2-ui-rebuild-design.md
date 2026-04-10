@@ -71,14 +71,16 @@ Settings         (Settings icon)         → /settings
 **Server component** that queries:
 ```typescript
 const { items: pending, total: pendingTotal } = await getContentItems({ 
-  status: 'pending_review', 
+  status: 'pending_review',
+  pipeline: pipelineFilter || undefined,  // NEW: requires adding pipeline_slug filter to getContentItems
+  platform: platformFilter || undefined,
   limit: 50 
 });
 ```
 
 **Layout**:
 - **Header**: "Review" title + badge showing `pendingTotal` count
-- **Filter bar**: Dropdown filters for pipeline (github-trends / signal-amplifier / release-radar) and platform (linkedin / twitter / instagram). These filter the query.
+- **Filter bar**: Dropdown filters for pipeline (github-trends / signal-amplifier / release-radar) and platform (linkedin / twitter / instagram). These filter the query. **Note**: `getContentItems` currently supports `pillar` filter but NOT `pipeline_slug` — a `pipeline` filter parameter must be added.
 - **Content card list**: One card per pending item. Each card shows:
   - Platform icon (LinkedIn blue / Twitter gray / Instagram gradient)
   - Title (text-zinc-100, font-medium)
@@ -136,7 +138,7 @@ Also uses `PIPELINES` from `@influenceai/core` for pipeline metadata (name, desc
 - **Header**: "Pipelines" title + "X runs today" subtitle
 - **Pipeline cards** (one per active pipeline — only show the 3 that have implementations):
   - Pipeline name + description
-  - Schedule in human-readable form: parse cron → "Daily at 8:00 AM UTC"
+  - Schedule in human-readable form: parse cron → "Daily at 8:00 AM UTC". If `schedule` is undefined (e.g., `release-radar`), show "On-demand".
   - Last run: status badge (completed/failed/running) + relative time ("3 hours ago")
   - Last run metrics: "5 signals → 3 items" (from `signals_ingested` and `items_generated`)
   - **"Run Now" button** — client component, calls `POST /api/pipelines/[id]/trigger`
@@ -167,6 +169,23 @@ Also uses `PIPELINES` from `@influenceai/core` for pipeline metadata (name, desc
 - This already works — no changes needed to the toggle logic
 
 **Removed tabs**: Integrations (not needed — manual posting), Prompt Templates (advanced), Preferences (timezone/model live in env vars).
+
+---
+
+### Layout routeMeta Update
+
+The current `routeMeta` in `layout.tsx` (line 9) is a static `Record<string, ...>` keyed by exact pathname — it won't match dynamic routes like `/pipelines/github-trends` or `/review/[id]`. Change the layout to support prefix matching: if `pathname` starts with `/pipelines/`, use "Pipelines" title. If it starts with `/review/`, use "Review". This ensures the topbar shows correct titles for all routes.
+
+New `routeMeta`:
+```typescript
+const routeMeta: Record<string, { title: string; subtitle?: string }> = {
+  '/': { title: 'Review', subtitle: 'Pending Content' },
+  '/content': { title: 'Content', subtitle: 'Library' },
+  '/pipelines': { title: 'Pipelines', subtitle: 'Automation' },
+  '/settings': { title: 'Settings', subtitle: 'Configuration' },
+};
+// For dynamic routes, match by prefix: /pipelines/* → "Pipelines", /review/* → "Review"
+```
 
 ---
 
@@ -221,6 +240,8 @@ export async function getPipelineContentItems(slug: string, limit: number = 10) 
 | File | Reason |
 |------|--------|
 | `app/(dashboard)/page.tsx` | Replaced by Review as home page |
+| `app/(dashboard)/review/page.tsx` | Old 3-tab Review Queue — replaced by new home page at `/` |
+| `app/(dashboard)/review/review-card.tsx` | Orphaned component from old Review Queue |
 | `app/(dashboard)/schedule/page.tsx` | No scheduling feature |
 | `app/(dashboard)/analytics/page.tsx` | No analytics data |
 | `app/(dashboard)/analytics/analytics-charts.tsx` | Part of deleted analytics |
@@ -244,7 +265,10 @@ export async function getPipelineContentItems(slug: string, limit: number = 10) 
 | **Modify** | `apps/web/src/app/(dashboard)/settings/page.tsx` (strip to profile + pillars) |
 | **Modify** | `apps/web/src/components/dashboard/sidebar.tsx` (4 nav items) |
 | **Modify** | `apps/web/src/lib/queries/pipelines.ts` (add getPipelineRuns, getPipelineContentItems) |
-| **Modify** | `apps/web/src/app/(dashboard)/layout.tsx` (update routeMeta for new pages) |
+| **Modify** | `apps/web/src/lib/queries/content.ts` (add `pipeline` filter to getContentItems) |
+| **Modify** | `apps/web/src/app/(dashboard)/layout.tsx` (update routeMeta for new pages + prefix matching for dynamic routes) |
+| **Delete** | `apps/web/src/app/(dashboard)/review/page.tsx` (old 3-tab Review Queue) |
+| **Delete** | `apps/web/src/app/(dashboard)/review/review-card.tsx` (orphaned component) |
 | **Delete** | `apps/web/src/app/(dashboard)/schedule/page.tsx` |
 | **Delete** | `apps/web/src/app/(dashboard)/analytics/page.tsx` |
 | **Delete** | `apps/web/src/app/(dashboard)/analytics/analytics-charts.tsx` |

@@ -58,6 +58,11 @@ const items = await getRunContentItems(runId);
 
 **No Signals Table**: `content_signals` doesn't have a `pipeline_run_id` column, so signals can't be linked to specific runs. The execution log already captures signal counts and which signals were dropped (Phase 1 adds relevance logging). This gives sufficient debugging context without a DB migration.
 
+**DB column notes**:
+- `pipeline_runs.signals_ingested` and `signals_filtered` exist (added by v2 migration `00002_v2_schema_updates.sql`)
+- `content_items.pipeline_run_id` exists (added by v2 migration) — so `getRunContentItems` can query by it
+- `pipeline_logs` FK column is `run_id` (not `pipeline_run_id`) — queries must use `.eq('run_id', runId)`
+
 **Generated Content** (list):
 - Content items where `pipeline_run_id` matches this run
 - Title, platform icon, status badge, quality score
@@ -74,7 +79,7 @@ const items = await getRunContentItems(runId);
 The "Run Now" button from Phase 2 currently shows a toast with results. Enhance it:
 
 - After a successful run, the toast includes a "View Run →" link to `/pipelines/[slug]/runs/[runId]`
-- The trigger API response already returns `runId` (it's part of `PipelineRunResult`)
+- The trigger API response does NOT currently include `runId` — the route at `apps/web/src/app/api/pipelines/[id]/trigger/route.ts` (lines 32-41) manually constructs the response and omits it. **Must add `runId: result.runId` to the response JSON.** (`PipelineRunResult` does include `runId` — it just isn't forwarded to the client.)
 - The `PipelineTriggerButton` component stores the `runId` from the response and renders the link
 
 ---
@@ -96,7 +101,7 @@ export async function getRunContentItems(runId: string) {
 }
 ```
 
-`getPipelineLogs(runId)` already exists.
+`getPipelineLogs(runId)` already exists in `apps/web/src/lib/queries/pipelines.ts` (line 74). **Note**: it currently orders by `created_at` descending (newest first). For the timeline view, change the ordering to ascending when calling or modify the query.
 
 ---
 
@@ -105,7 +110,8 @@ export async function getRunContentItems(runId: string) {
 | Action | File |
 |--------|------|
 | **Create** | `apps/web/src/app/(dashboard)/pipelines/[slug]/runs/[runId]/page.tsx` |
-| **Modify** | `apps/web/src/lib/queries/pipelines.ts` (add getPipelineRunDetail, getRunContentItems) |
+| **Modify** | `apps/web/src/lib/queries/pipelines.ts` (add getPipelineRunDetail, getRunContentItems; fix getPipelineLogs ordering) |
+| **Modify** | `apps/web/src/app/api/pipelines/[id]/trigger/route.ts` (add `runId` to response JSON) |
 | **Modify** | `apps/web/src/components/dashboard/pipeline-trigger-button.tsx` (add "View Run" link after success) |
 
 ## Testing
