@@ -86,6 +86,14 @@ describe('scoreSignalRelevance', () => {
     const score = scoreSignalRelevance(signalWithLLM);
     expect(score).toBe(2);
   });
+
+  it('does not match "ai" as substring in common words', () => {
+    const signal = makeSignal({
+      title: 'Explaining the main details about daily training',
+    });
+    const score = scoreSignalRelevance(signal);
+    expect(score).toBe(0);
+  });
 });
 
 describe('scoreRelevance (batch filtering)', () => {

@@ -111,35 +111,23 @@ const KEYWORD_ENTRIES: KeywordEntry[] = buildKeywordMap();
  *
  * Algorithm:
  * 1. Normalise `title + " " + summary` to lower-case.
- * 2. Walk keyword entries (longest first) and, for each match, add its weight
- *    and remove the matched text from the working string to prevent
- *    double-counting overlapping keywords.
+ * 2. Walk keyword entries (longest first) and, for each match (using word
+ *    boundaries to avoid false positives like 'ai' inside 'main'), add its
+ *    weight once per keyword.
  * 3. Cap result at 10.
  */
 export function scoreSignalRelevance(signal: Signal): number {
-  let text = `${signal.title} ${signal.summary}`.toLowerCase();
+  const text = `${signal.title} ${signal.summary}`.toLowerCase();
 
   if (!text.trim()) return 0;
 
   let totalScore = 0;
 
   for (const { keyword, weight } of KEYWORD_ENTRIES) {
-    if (text.includes(keyword)) {
-      // Count all non-overlapping occurrences and remove them to prevent
-      // sub-keyword double-counting.
-      let count = 0;
-      let idx = text.indexOf(keyword);
-      while (idx !== -1) {
-        count++;
-        // Replace matched occurrence with placeholder spaces to preserve
-        // surrounding word boundaries while preventing re-matching.
-        text =
-          text.slice(0, idx) +
-          ' '.repeat(keyword.length) +
-          text.slice(idx + keyword.length);
-        idx = text.indexOf(keyword, idx);
-      }
-      totalScore += count * weight;
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    if (regex.test(text)) {
+      totalScore += weight;
     }
   }
 
