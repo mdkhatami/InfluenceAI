@@ -62,9 +62,12 @@ async function scrapeGitHubTrending(
   language: string,
 ): Promise<TrendingRepo[]> {
   const url = `https://github.com/trending${language ? `/${language}` : ''}?since=${since}`;
-  const response = await fetch(url, {
-    headers: { 'User-Agent': 'InfluenceAI-Bot/1.0' },
-  });
+  const headers: Record<string, string> = { 'User-Agent': 'InfluenceAI-Bot/1.0' };
+  const ghToken = process.env.GITHUB_TOKEN;
+  if (ghToken) {
+    headers['Authorization'] = `Bearer ${ghToken}`;
+  }
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
     throw new Error(`GitHub trending returned ${response.status}`);
