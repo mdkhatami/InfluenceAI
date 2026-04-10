@@ -43,7 +43,7 @@ export async function upsertSignalWithScore(
         scored_relevance: score,
         ingested_at: signal.fetchedAt.toISOString(),
       },
-      { onConflict: 'dedup_hash' },
+      { onConflict: 'source,external_id' },
     )
     .select('id')
     .single();

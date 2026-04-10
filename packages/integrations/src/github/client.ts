@@ -65,7 +65,16 @@ async function scrapeGitHubTrending(
   const response = await fetch(url, {
     headers: { 'User-Agent': 'InfluenceAI-Bot/1.0' },
   });
+
+  if (!response.ok) {
+    throw new Error(`GitHub trending returned ${response.status}`);
+  }
+
   const html = await response.text();
+
+  if (html.includes('login?') && !html.includes('Box-row')) {
+    throw new Error('GitHub returned login page (rate limited or blocked)');
+  }
 
   const repos: TrendingRepo[] = [];
   const articleRegex = /class="Box-row"[\s\S]*?<\/article>/g;
@@ -86,6 +95,8 @@ async function scrapeGitHubTrending(
 
     if (nameMatch) {
       const fullName = nameMatch[1].trim();
+      // Skip login redirects and non-repo paths
+      if (fullName.startsWith('login') || !fullName.includes('/')) continue;
       const parts = fullName.split('/');
       repos.push({
         name: parts[1] ?? fullName,
