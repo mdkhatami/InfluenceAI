@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/github-trends",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/signal-amplifier",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/release-radar",
+      "schedule": "0 10 * * *"
+    }
+  ]
+}
