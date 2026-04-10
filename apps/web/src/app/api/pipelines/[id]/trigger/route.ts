@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server';
-import { tasks } from '@trigger.dev/sdk/v3';
+import {
+  runPipeline,
+  githubTrendsPipeline,
+  signalAmplifierPipeline,
+  releaseRadarPipeline,
+} from '@influenceai/pipelines';
+import type { PipelineDefinition } from '@influenceai/core';
+
+const pipelineMap: Record<string, PipelineDefinition> = {
+  'github-trends': githubTrendsPipeline,
+  'signal-amplifier': signalAmplifierPipeline,
+  'release-radar': releaseRadarPipeline,
+};
 
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
-  // Map pipeline IDs to Trigger.dev task IDs
-  const taskMap: Record<string, string> = {
-    'github-trends': 'github-trends-pipeline',
-  };
-
-  const taskId = taskMap[id];
-  if (!taskId) {
+  const pipeline = pipelineMap[id];
+  if (!pipeline) {
     return NextResponse.json(
       { error: `Unknown pipeline: ${id}` },
       { status: 404 },
@@ -21,16 +28,19 @@ export async function POST(
   }
 
   try {
-    const handle = await tasks.trigger(taskId, {});
-
+    const result = await runPipeline(pipeline);
     return NextResponse.json({
       success: true,
       pipelineId: id,
-      triggerRunId: handle.id,
-      message: `Pipeline ${id} triggered successfully`,
+      status: result.status,
+      signalsIngested: result.signalsIngested,
+      signalsFiltered: result.signalsFiltered,
+      itemsGenerated: result.itemsGenerated,
+      errors: result.errors,
+      durationMs: result.durationMs,
     });
   } catch (error) {
-    console.error(`Failed to trigger pipeline ${id}:`, error);
+    console.error(`[pipeline] trigger ${id} failed:`, error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to trigger pipeline' },
       { status: 500 },

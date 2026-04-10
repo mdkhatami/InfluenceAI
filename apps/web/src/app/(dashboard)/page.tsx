@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PILLARS, PIPELINES } from '@influenceai/core';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';

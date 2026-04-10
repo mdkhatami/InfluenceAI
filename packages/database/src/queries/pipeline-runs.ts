@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { PipelineStatus } from '@influenceai/core';
+import type { PipelineRunStatus as CorePipelineRunStatus } from '@influenceai/core';
 
-export type PipelineRunStatus = PipelineStatus;
+export type PipelineRunStatus = CorePipelineRunStatus;
 
 export async function createPipelineRun(
   client: SupabaseClient,

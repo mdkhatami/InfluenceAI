@@ -11,7 +11,6 @@
     "seed:templates": "tsx packages/database/src/seed/prompt-templates.ts"
   },
   "devDependencies": {
-    "@trigger.dev/sdk": "^3.0.0",
     "tsx": "^4.21.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0",
