@@ -11,6 +11,7 @@ export interface PipelineDefinition {
   enabled: boolean;
   pillar: string;
   platforms: Platform[];
+  relevanceThreshold?: number;
   ingest: (config: Record<string, unknown>) => Promise<Signal[]>;
   filter: (signals: Signal[], config: Record<string, unknown>) => Promise<ScoredSignal[]>;
   generate: {
