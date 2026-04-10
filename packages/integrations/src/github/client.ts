@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidRepoPath } from './validate-repo-path';
 
 export const TrendingRepoSchema = z.object({
   name: z.string(),
@@ -99,7 +100,7 @@ async function scrapeGitHubTrending(
     if (nameMatch) {
       const fullName = nameMatch[1].trim();
       // Skip login redirects and non-repo paths
-      if (fullName.startsWith('login') || !fullName.includes('/')) continue;
+      if (!isValidRepoPath(fullName)) continue;
       const parts = fullName.split('/');
       repos.push({
         name: parts[1] ?? fullName,
