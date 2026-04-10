@@ -1,9 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { logEnvValidation } from '@/lib/env';
 
 export async function middleware(request: NextRequest) {
-  logEnvValidation();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
@@ -49,7 +47,7 @@ export async function middleware(request: NextRequest) {
   if (!user && !isAuthPage) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(loginUrl.toString());
   }
 
   // Logged in but on login page → redirect to dashboard

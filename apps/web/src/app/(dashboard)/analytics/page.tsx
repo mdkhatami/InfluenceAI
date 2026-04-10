@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAnalyticsStats, getContentTrends } from '@/lib/queries/analytics';
 import { getPipelineSuccessRate } from '@/lib/queries/pipelines';
 import { PILLARS } from '@influenceai/core';
