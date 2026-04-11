@@ -106,3 +106,37 @@ export async function getPipelineContentItems(slug: string, limit: number = 10) 
   if (error) throw error;
   return data ?? [];
 }
+
+export async function getPipelineRunDetail(runId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('pipeline_runs')
+    .select('*')
+    .eq('id', runId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+export async function getRunContentItems(runId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('id, title, platform, status, quality_score, created_at')
+    .eq('pipeline_run_id', runId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getPipelineLogsAsc(runId: string, limit: number = 100) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('pipeline_logs')
+    .select('*')
+    .eq('run_id', runId)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}

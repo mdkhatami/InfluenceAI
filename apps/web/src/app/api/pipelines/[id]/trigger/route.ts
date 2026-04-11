@@ -31,6 +31,7 @@ export async function POST(
     const result = await runPipeline(pipeline);
     return NextResponse.json({
       success: true,
+      runId: result.runId,
       pipelineId: id,
       status: result.status,
       signalsIngested: result.signalsIngested,
