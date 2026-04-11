@@ -1,0 +1,8 @@
+{
+  "findings": [
+    { "type": "fact", "headline": "NVDA up 12% since AI announcement", "detail": "Stock price moved from $850 to $950 in 5 trading days following the announcement", "importance": "high" },
+    { "type": "prediction", "headline": "Market expects $2B revenue impact", "detail": "Analyst consensus suggests significant revenue implications for cloud GPU providers", "importance": "medium" }
+  ],
+  "hooks": ["Wall Street just placed a $2B bet on this technology"],
+  "sources": [{ "title": "Yahoo Finance", "url": "https://finance.yahoo.com", "source": "yahoo_finance", "accessedAt": "2026-04-11T00:00:00Z" }]
+}

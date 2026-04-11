@@ -1,0 +1,8 @@
+{
+  "findings": [
+    { "type": "trend", "headline": "500 stars/week growth rate", "detail": "Repository gaining 500+ stars weekly, placing it in the top 0.1% of GitHub growth", "importance": "high" },
+    { "type": "fact", "headline": "npm downloads up 300% month-over-month", "detail": "Package downloads went from 10k to 40k weekly downloads in one month", "importance": "medium" }
+  ],
+  "hooks": ["The developer community is voting with their stars — and it's a landslide"],
+  "sources": [{ "title": "GitHub API", "url": "https://github.com", "source": "github", "accessedAt": "2026-04-11T00:00:00Z" }]
+}

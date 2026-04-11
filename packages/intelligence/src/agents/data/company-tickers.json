@@ -1,0 +1,8 @@
+{
+  "openai": null, "anthropic": null, "google": "GOOGL", "microsoft": "MSFT",
+  "meta": "META", "nvidia": "NVDA", "amazon": "AMZN", "apple": "AAPL",
+  "tesla": "TSLA", "ibm": "IBM", "intel": "INTC", "amd": "AMD",
+  "salesforce": "CRM", "adobe": "ADBE", "palantir": "PLTR",
+  "snowflake": "SNOW", "datadog": "DDOG", "mongodb": "MDB",
+  "cloudflare": "NET", "crowdstrike": "CRWD"
+}
