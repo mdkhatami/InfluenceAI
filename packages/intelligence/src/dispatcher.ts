@@ -1,4 +1,5 @@
 import type { ScoredSignal } from '@influenceai/core';
+import type { LLMClient } from '@influenceai/integrations';
 import type {
   AgentBrief,
   ResearchBrief,
@@ -19,7 +20,7 @@ import { synthesizeBriefs, createFallbackBrief } from './synthesis';
 // Agent factory — creates agent instances with injected LLM client
 // ---------------------------------------------------------------------------
 
-function createAgent(id: string, llm: any): InvestigationAgent | null {
+function createAgent(id: string, llm: LLMClient): InvestigationAgent | null {
   const agents: Record<string, () => InvestigationAgent> = {
     tech: () => new TechAgent(llm),
     history: () => new HistoryAgent(llm),
@@ -127,7 +128,7 @@ export async function dispatchSwarm(
   dbSignalId: string, // Fix 2: UUID from content_signals table, NOT signal.sourceId
   config: SwarmConfig,
   db: any,
-  llm: any,
+  llm: LLMClient,
 ): Promise<ResearchBrief> {
   // 1. Create investigation run record
   const runId = await createInvestigationRun(db, dbSignalId, config);

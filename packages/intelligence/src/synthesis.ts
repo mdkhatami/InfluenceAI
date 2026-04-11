@@ -1,4 +1,5 @@
 import type { ScoredSignal } from '@influenceai/core';
+import type { LLMClient } from '@influenceai/integrations';
 import type { AgentBrief, ResearchBrief, SynthesisOutput, Finding } from './types';
 
 const SYNTHESIS_SYSTEM_PROMPT = `You are a research synthesis agent. You receive findings from multiple specialized investigation agents and must:
@@ -20,7 +21,7 @@ export async function synthesizeBriefs(
   signal: ScoredSignal,
   signalId: string,
   briefs: AgentBrief[],
-  llm: any,
+  llm: LLMClient,
 ): Promise<ResearchBrief> {
   const userPrompt = buildSynthesisPrompt(signal, briefs);
 
