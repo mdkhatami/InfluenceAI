@@ -54,7 +54,7 @@ export async function synthesizeBriefs(
       agents: briefs.map((b) => b.agentId),
     },
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
   };
 }
 
@@ -70,7 +70,7 @@ export function createFallbackBrief(signal: ScoredSignal, signalId: string): Res
     agentBriefs: [],
     coverage: { dispatched: 0, succeeded: 0, failed: 0, agents: [] },
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
   };
 }
 

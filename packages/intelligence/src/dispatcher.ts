@@ -46,6 +46,7 @@ async function createInvestigationRun(
     .insert({
       signal_id: signalId,
       status: 'running',
+      trigger_type: config.triggerType ?? null,
       config: config,
       started_at: new Date().toISOString(),
     })
@@ -74,9 +75,11 @@ async function storeAgentBrief(
 async function storeResearchBrief(
   db: any,
   brief: ResearchBrief,
+  runId: string,
 ): Promise<void> {
   await db.from('research_briefs').insert({
     id: brief.id,
+    investigation_run_id: runId, // C2 fix: link back to investigation run
     signal_id: brief.signalId,
     signal_data: brief.signal, // Fix 1: store full signal object as JSONB
     top_findings: brief.topFindings,
@@ -96,12 +99,19 @@ async function completeInvestigationRun(
   db: any,
   runId: string,
   status: string,
+  agentStats?: { dispatched: number; succeeded: number; failed: number; agents: string[] },
 ): Promise<void> {
   await db
     .from('investigation_runs')
     .update({
       status,
       completed_at: new Date().toISOString(),
+      ...(agentStats && {
+        agents_dispatched: agentStats.dispatched,
+        agents_succeeded: agentStats.succeeded,
+        agents_failed: agentStats.failed,
+        agents_list: agentStats.agents,
+      }),
     })
     .eq('id', runId);
 }
@@ -111,9 +121,10 @@ async function logStep(
   runId: string,
   message: string,
 ): Promise<void> {
-  await db.from('pipeline_logs').insert({
-    run_id: runId,
-    step_name: 'investigation',
+  // C1 fix: use investigation_logs (not pipeline_logs which has FK to pipeline_runs)
+  await db.from('investigation_logs').insert({
+    investigation_run_id: runId,
+    level: 'info',
     message,
     created_at: new Date().toISOString(),
   });
@@ -140,8 +151,8 @@ export async function dispatchSwarm(
   // 3. Handle empty agent selection
   if (selectedAgents.length === 0) {
     const fallback = createFallbackBrief(signal, dbSignalId);
-    await storeResearchBrief(db, fallback);
-    await completeInvestigationRun(db, runId, 'completed');
+    await storeResearchBrief(db, fallback, runId);
+    await completeInvestigationRun(db, runId, 'completed', { dispatched: 0, succeeded: 0, failed: 0, agents: [] });
     await logStep(db, runId, 'No agents selected — fallback brief created');
     return fallback;
   }
@@ -208,7 +219,7 @@ export async function dispatchSwarm(
   }
 
   // 8. Store research brief in DB (with signal_data for Fix 1)
-  await storeResearchBrief(db, brief);
+  await storeResearchBrief(db, brief, runId);
 
   // 9. Determine final status and update investigation run
   let finalStatus: string;
@@ -219,7 +230,13 @@ export async function dispatchSwarm(
   } else {
     finalStatus = 'failed';
   }
-  await completeInvestigationRun(db, runId, finalStatus);
+  const agentStats = {
+    dispatched: agents.length,
+    succeeded: succeeded.length,
+    failed: failed.length,
+    agents: agents.map(a => a.id),
+  };
+  await completeInvestigationRun(db, runId, finalStatus, agentStats);
   await logStep(
     db,
     runId,
