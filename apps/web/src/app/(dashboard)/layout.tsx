@@ -7,18 +7,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 const routeMeta: Record<string, { title: string; subtitle?: string }> = {
-  '/': { title: 'Command Center', subtitle: 'Dashboard' },
-  '/content': { title: 'Content Library', subtitle: 'Content' },
+  '/': { title: 'Review', subtitle: 'Pending Content' },
+  '/content': { title: 'Content', subtitle: 'Library' },
   '/pipelines': { title: 'Pipelines', subtitle: 'Automation' },
-  '/review': { title: 'Review Queue', subtitle: 'Content' },
-  '/schedule': { title: 'Schedule', subtitle: 'Calendar' },
-  '/analytics': { title: 'Analytics', subtitle: 'Insights' },
   '/settings': { title: 'Settings', subtitle: 'Configuration' },
 };
 
+function getRouteMeta(pathname: string) {
+  if (routeMeta[pathname]) return routeMeta[pathname];
+  if (pathname.startsWith('/pipelines/')) return { title: 'Pipelines', subtitle: 'Detail' };
+  if (pathname.startsWith('/review/')) return { title: 'Review', subtitle: 'Detail' };
+  return { title: 'InfluenceAI' };
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const meta = routeMeta[pathname] || { title: 'InfluenceAI' };
+  const meta = getRouteMeta(pathname);
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950">

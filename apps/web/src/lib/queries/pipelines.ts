@@ -82,3 +82,27 @@ export async function getPipelineLogs(runId: string, limit: number = 50) {
   if (error) throw error;
   return data ?? [];
 }
+
+export async function getPipelineRuns(slug: string, limit: number = 20) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('pipeline_runs')
+    .select('*')
+    .eq('pipeline_slug', slug)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getPipelineContentItems(slug: string, limit: number = 10) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('id, title, platform, status, quality_score, created_at')
+    .eq('pipeline_slug', slug)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}

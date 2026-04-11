@@ -1,20 +1,19 @@
 export const dynamic = 'force-dynamic';
 
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn, getStatusColor, getPillarColor, formatNumber } from '@/lib/utils';
-import { PILLARS } from '@influenceai/core';
+import { cn } from '@/lib/utils';
 import {
-  Plus,
   Search,
   Linkedin,
   Instagram,
   Youtube,
   Twitter,
   FileText,
+  Star,
 } from 'lucide-react';
-import Link from 'next/link';
 import { getContentItems } from '@/lib/queries/content';
 
 const platformIcons: Record<string, typeof Linkedin> = {
@@ -49,14 +48,23 @@ const TABS = [
   { value: 'rejected', label: 'Rejected' },
 ];
 
+const PLATFORM_OPTIONS = [
+  { value: '', label: 'All Platforms' },
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'twitter', label: 'Twitter' },
+];
+
 export default async function ContentLibrary({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; search?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; search?: string; platform?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const status = params.status && params.status !== 'all' ? params.status : undefined;
   const search = params.search || undefined;
+  const platform = params.platform || undefined;
   const page = parseInt(params.page ?? '1', 10);
   const limit = 20;
   const offset = (page - 1) * limit;
@@ -65,46 +73,57 @@ export default async function ContentLibrary({
     id: string;
     title: string;
     pillar_slug: string;
+    pipeline_slug?: string | null;
     platform: string;
     status: string;
+    quality_score: number | null;
     created_at: string;
-    metadata?: Record<string, unknown>;
   }> = [];
   let total = 0;
 
   try {
-    const result = await getContentItems({ status, search, limit, offset });
+    const result = await getContentItems({ status, search, platform, limit, offset });
     items = result.items;
     total = result.total;
-  } catch (e) {
+  } catch {
     // Fallback to empty on error
   }
 
   const activeTab = params.status ?? 'all';
+  const activePlatform = params.platform ?? '';
+
+  function buildUrl(overrides: Record<string, string | undefined>) {
+    const p = new URLSearchParams();
+    const s = overrides.status ?? params.status;
+    if (s && s !== 'all') p.set('status', s);
+    const srch = overrides.search !== undefined ? overrides.search : params.search;
+    if (srch) p.set('search', srch);
+    const plat = overrides.platform !== undefined ? overrides.platform : params.platform;
+    if (plat) p.set('platform', plat);
+    const pg = overrides.page ?? params.page;
+    if (pg && pg !== '1') p.set('page', pg);
+    const qs = p.toString();
+    return qs ? `/content?${qs}` : '/content';
+  }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-50">Content Library</h1>
-          <p className="mt-1 text-zinc-400">{total} total pieces of content</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Content
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-50">Content Library</h1>
+        <p className="mt-1 text-sm text-zinc-400">{total} total pieces of content</p>
       </div>
 
       {/* Filter Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Status tabs */}
         <div className="flex gap-1 rounded-lg bg-zinc-900 p-1">
           {TABS.map((tab) => (
             <Link
               key={tab.value}
-              href={`/content?status=${tab.value}${search ? `&search=${search}` : ''}`}
+              href={buildUrl({ status: tab.value, page: '1' })}
               className={cn(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
                 activeTab === tab.value
                   ? 'bg-zinc-800 text-zinc-50'
                   : 'text-zinc-400 hover:text-zinc-300'
@@ -115,7 +134,26 @@ export default async function ContentLibrary({
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* Platform filter */}
+          <div className="flex gap-1 rounded-lg bg-zinc-900 p-1">
+            {PLATFORM_OPTIONS.map((opt) => (
+              <Link
+                key={opt.value}
+                href={buildUrl({ platform: opt.value || undefined, page: '1' })}
+                className={cn(
+                  'rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  activePlatform === opt.value
+                    ? 'bg-zinc-800 text-zinc-50'
+                    : 'text-zinc-400 hover:text-zinc-300'
+                )}
+              >
+                {opt.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Search */}
           <form className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
@@ -126,6 +164,7 @@ export default async function ContentLibrary({
               className="bg-transparent text-sm text-zinc-50 placeholder-zinc-500 outline-none w-48"
             />
             {status && <input type="hidden" name="status" value={status} />}
+            {platform && <input type="hidden" name="platform" value={platform} />}
           </form>
         </div>
       </div>
@@ -138,37 +177,39 @@ export default async function ContentLibrary({
               <thead>
                 <tr className="border-b border-zinc-800">
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Pillar</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Platform</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Pipeline</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Quality</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Created</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/50">
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-sm text-zinc-500">
                       No content found.
                     </td>
                   </tr>
                 ) : (
                   items.map((item) => {
-                    const pillar = PILLARS.find((p) => p.slug === item.pillar_slug);
                     const PlatformIcon = platformIcons[item.platform] ?? FileText;
+                    const pipelineLabel = item.pipeline_slug
+                      ? item.pipeline_slug.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
+                      : null;
+
                     return (
-                      <tr key={item.id} className="cursor-pointer transition-colors hover:bg-zinc-800/50">
+                      <tr key={item.id} className="transition-colors hover:bg-zinc-800/50">
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
+                          <Link
+                            href={`/review/${item.id}`}
+                            className="flex items-center gap-3 group"
+                          >
                             <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                            <span className="text-sm font-medium text-zinc-50 line-clamp-1">{item.title}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {pillar && (
-                            <Badge className={cn('text-xs', getPillarColor(pillar.color))}>
-                              {pillar.name.split(' \u2192')[0]}
-                            </Badge>
-                          )}
+                            <span className="text-sm font-medium text-zinc-50 line-clamp-1 group-hover:text-violet-400 transition-colors">
+                              {item.title}
+                            </span>
+                          </Link>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
@@ -177,9 +218,28 @@ export default async function ContentLibrary({
                           </div>
                         </td>
                         <td className="px-6 py-4">
+                          {pipelineLabel ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {pipelineLabel}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-zinc-600">--</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
                           <Badge variant={statusBadgeVariant[item.status] ?? 'secondary'}>
                             {statusLabels[item.status] ?? item.status}
                           </Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          {item.quality_score !== null ? (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 text-amber-400" />
+                              <span className="text-sm text-zinc-300">{item.quality_score}/10</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600">--</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-sm text-zinc-500">
@@ -204,12 +264,12 @@ export default async function ContentLibrary({
           </p>
           <div className="flex gap-2">
             {page > 1 && (
-              <Link href={`/content?status=${activeTab}${search ? `&search=${search}` : ''}&page=${page - 1}`}>
+              <Link href={buildUrl({ page: String(page - 1) })}>
                 <Button variant="outline" size="sm">Previous</Button>
               </Link>
             )}
             {offset + limit < total && (
-              <Link href={`/content?status=${activeTab}${search ? `&search=${search}` : ''}&page=${page + 1}`}>
+              <Link href={buildUrl({ page: String(page + 1) })}>
                 <Button variant="outline" size="sm">Next</Button>
               </Link>
             )}

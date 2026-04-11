@@ -5,15 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import {
-  LayoutDashboard,
+  ClipboardCheck,
   FileText,
   Workflow,
-  CheckCircle,
-  Calendar,
-  BarChart3,
   Settings,
   Sparkles,
   User,
@@ -21,15 +16,9 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { label: 'Command Center', icon: LayoutDashboard, href: '/' },
+  { label: 'Review', icon: ClipboardCheck, href: '/' },
   { label: 'Content', icon: FileText, href: '/content' },
   { label: 'Pipelines', icon: Workflow, href: '/pipelines' },
-  { label: 'Review Queue', icon: CheckCircle, href: '/review' },
-  { label: 'Schedule', icon: Calendar, href: '/schedule' },
-  { label: 'Analytics', icon: BarChart3, href: '/analytics' },
-];
-
-const bottomNavItems = [
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
@@ -108,35 +97,11 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 active
-                  ? 'bg-zinc-800 text-zinc-50 border-l-2 border-blue-500 pl-[10px]'
+                  ? 'bg-zinc-800 text-zinc-50 border-l-2 border-violet-500 pl-[10px]'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50',
               )}
             >
-              <Icon className={cn('h-4 w-4', active ? 'text-blue-400' : '')} />
-              {item.label}
-            </Link>
-          );
-        })}
-
-        <div className="py-2">
-          <Separator />
-        </div>
-
-        {bottomNavItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                active
-                  ? 'bg-zinc-800 text-zinc-50 border-l-2 border-blue-500 pl-[10px]'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50',
-              )}
-            >
-              <Icon className={cn('h-4 w-4', active ? 'text-blue-400' : '')} />
+              <Icon className={cn('h-4 w-4', active ? 'text-violet-400' : '')} />
               {item.label}
             </Link>
           );
