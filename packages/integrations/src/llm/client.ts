@@ -78,10 +78,20 @@ export class LLMClient {
         { role: 'system', content: params.systemPrompt },
         { role: 'user', content: params.userPrompt },
       ],
+      max_tokens: params.maxTokens ?? 1500,       // Fix 7: was missing
+      temperature: params.temperature ?? 0.7,      // Fix 7: was missing
       response_format: { type: 'json_object' },
     });
 
     return JSON.parse(response.choices[0]?.message?.content ?? '{}') as T;
+  }
+
+  async createEmbedding(input: string, model?: string): Promise<number[]> {
+    const response = await this.client.embeddings.create({
+      model: model || process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
+      input: input.substring(0, 8000),
+    });
+    return response.data[0].embedding;
   }
 
   async generateWithQuality(params: LLMGenerateParams): Promise<LLMGenerateResult & { qualityScore: number }> {
