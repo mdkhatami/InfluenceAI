@@ -3,6 +3,7 @@ import type {
   PipelineRunResult,
   PipelineRunStatus,
   ScoredSignal,
+  Platform,
 } from '@influenceai/core';
 import {
   getServiceClient,
@@ -16,9 +17,12 @@ import {
   computeDedupeHash,
 } from '@influenceai/database';
 import { LLMClient, buildPrompt } from '@influenceai/integrations';
+import { dispatchSwarm, defaultSwarmConfig } from '@influenceai/intelligence';
+import type { ResearchBrief } from '@influenceai/intelligence';
 import { deduplicateSignals } from './dedup';
 import { scoreRelevance } from './relevance';
 import { getPillar } from '@influenceai/core';
+import { buildPromptFromBrief } from './brief-prompt';
 
 export async function runPipeline(definition: PipelineDefinition): Promise<PipelineRunResult> {
   const startTime = Date.now();
@@ -161,6 +165,17 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
         continue;
       }
 
+      // Optional: dispatch investigation swarm for richer content
+      let researchBrief: ResearchBrief | undefined;
+      try {
+        researchBrief = await dispatchSwarm(signal as ScoredSignal, signalId, defaultSwarmConfig, db, llm);
+        await logPipelineStep(db, runId, 'investigate', 'info', `Investigation complete for ${signal.sourceId}: ${researchBrief.coverage.succeeded}/${researchBrief.coverage.dispatched} agents`);
+      } catch (err) {
+        // Investigation is best-effort — log but do not fail the run
+        await logPipelineStep(db, runId, 'investigate', 'warn', `Swarm failed for ${signal.sourceId}: ${err}`);
+        // Fall through — researchBrief stays undefined, use old path
+      }
+
       for (const platform of definition.platforms) {
         try {
           // Get prompt template (DB first, fallback to pillar default)
@@ -170,11 +185,18 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
             userPromptTemplate: `{{platform_format}}\n\nSignal: {{signal_title}}\nSummary: {{signal_summary}}\nURL: {{signal_url}}\nMetadata: {{signal_metadata}}`,
           };
 
-          const { systemPrompt, userPrompt } = buildPrompt(
-            { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
-            signal,
-            platform,
-          );
+          // Use brief-aware prompt if investigation succeeded, otherwise fall back
+          const { systemPrompt, userPrompt } = researchBrief
+            ? buildPromptFromBrief(
+                { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
+                researchBrief,
+                platform as Platform,
+              )
+            : buildPrompt(
+                { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
+                signal,
+                platform,
+              );
 
           const result = await llm.generateWithQuality({
             systemPrompt,

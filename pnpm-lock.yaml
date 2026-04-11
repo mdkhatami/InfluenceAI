@@ -35,6 +35,9 @@ importers:
       '@influenceai/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
+      '@influenceai/intelligence':
+        specifier: workspace:*
+        version: link:../../packages/intelligence
       '@influenceai/pipelines':
         specifier: workspace:*
         version: link:../../packages/pipelines
@@ -210,6 +213,9 @@ importers:
       '@influenceai/integrations':
         specifier: workspace:*
         version: link:../integrations
+      '@influenceai/intelligence':
+        specifier: workspace:*
+        version: link:../intelligence
     devDependencies:
       typescript:
         specifier: ^5.7.0
