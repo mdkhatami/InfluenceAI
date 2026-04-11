@@ -20,6 +20,10 @@ export function isValidRepoPath(path: string): boolean {
   if (parts.length !== 2) return false;
   const [owner, repo] = parts;
   if (!owner || !repo) return false;
-  if (INVALID_PREFIXES.some((prefix) => owner.toLowerCase().startsWith(prefix))) return false;
+  if (INVALID_PREFIXES.includes(owner.toLowerCase())) return false;
+
+  // GitHub usernames: alphanumeric and hyphens only
+  if (!/^[\w.-]+$/.test(owner)) return false;
+
   return true;
 }

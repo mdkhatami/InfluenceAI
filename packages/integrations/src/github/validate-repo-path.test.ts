@@ -53,4 +53,14 @@ describe('isValidRepoPath', () => {
   it('rejects "org/" (empty repo)', () => {
     expect(isValidRepoPath('org/')).toBe(false);
   });
+
+  it('accepts "hugging-face/transformers" (hyphens)', () => {
+    expect(isValidRepoPath('hugging-face/transformers')).toBe(true);
+  });
+
+  it('accepts owner names that start with a reserved prefix', () => {
+    expect(isValidRepoPath('newrelic/node-agent')).toBe(true);
+    expect(isValidRepoPath('explorer42/cool-repo')).toBe(true);
+    expect(isValidRepoPath('logintech/sdk')).toBe(true);
+  });
 });
