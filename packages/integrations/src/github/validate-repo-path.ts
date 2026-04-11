@@ -14,6 +14,10 @@ const INVALID_PREFIXES = [
   'codespaces',
 ];
 
+/**
+ * Validates that a path extracted from GitHub trending HTML is a real owner/repo path.
+ * Rejects login redirects, known GitHub UI paths, and malformed paths.
+ */
 export function isValidRepoPath(path: string): boolean {
   if (!path || !path.includes('/')) return false;
   const parts = path.split('/');
@@ -22,8 +26,8 @@ export function isValidRepoPath(path: string): boolean {
   if (!owner || !repo) return false;
   if (INVALID_PREFIXES.includes(owner.toLowerCase())) return false;
 
-  // GitHub usernames: alphanumeric and hyphens only
-  if (!/^[\w.-]+$/.test(owner)) return false;
+  // Reject characters that can't appear in GitHub usernames or repo names
+  if (!/^[a-zA-Z0-9._-]+$/.test(owner) || !/^[a-zA-Z0-9._-]+$/.test(repo)) return false;
 
   return true;
 }

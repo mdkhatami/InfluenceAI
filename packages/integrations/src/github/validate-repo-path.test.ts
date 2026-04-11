@@ -63,4 +63,8 @@ describe('isValidRepoPath', () => {
     expect(isValidRepoPath('explorer42/cool-repo')).toBe(true);
     expect(isValidRepoPath('logintech/sdk')).toBe(true);
   });
+
+  it('rejects paths with query strings in repo segment', () => {
+    expect(isValidRepoPath('facebook/react?tab=stars')).toBe(false);
+  });
 });
