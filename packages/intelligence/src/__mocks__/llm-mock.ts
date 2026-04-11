@@ -31,6 +31,12 @@ export function createMockLLMClient() {
       if (prompt.includes('developer') || prompt.includes('ecosystem') || prompt.includes('adoption')) {
         return devecoFixture as T;
       }
+      if (prompt.includes('geopolit') || prompt.includes('regulat') || prompt.includes('policy')) {
+        return financeFixture as T; // reuse finance fixture structure (same shape)
+      }
+      if (prompt.includes('industry') || prompt.includes('disruption') || prompt.includes('market impact')) {
+        return devecoFixture as T; // reuse deveco fixture structure (same shape)
+      }
       if (prompt.includes('tech') || prompt.includes('technical')) {
         return techFixture as T;
       }

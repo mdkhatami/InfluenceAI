@@ -1,0 +1,177 @@
+[
+  {
+    "article": "Art. 5",
+    "title": "Prohibited artificial intelligence practices",
+    "riskLevel": "unacceptable",
+    "keywords": ["social scoring", "subliminal", "manipulation", "biometric", "real-time", "surveillance", "emotion recognition", "prohibited", "exploit", "vulnerability", "dark pattern"],
+    "summary": "Bans AI systems that use subliminal techniques, exploit vulnerabilities, enable social scoring, or use real-time remote biometric identification in public spaces"
+  },
+  {
+    "article": "Art. 6",
+    "title": "Classification rules for high-risk AI systems",
+    "riskLevel": "high",
+    "keywords": ["high-risk", "safety", "critical infrastructure", "medical", "law enforcement", "employment", "education", "credit scoring", "classification", "annex"],
+    "summary": "Defines criteria for classifying AI as high-risk based on use in safety components, critical infrastructure, and other high-impact areas"
+  },
+  {
+    "article": "Art. 7",
+    "title": "Amendments to Annex III",
+    "riskLevel": "high",
+    "keywords": ["annex III", "amendment", "high-risk areas", "update", "commission", "delegated act"],
+    "summary": "Empowers the European Commission to update the list of high-risk AI use cases in Annex III via delegated acts"
+  },
+  {
+    "article": "Art. 8",
+    "title": "Compliance with requirements for high-risk AI systems",
+    "riskLevel": "high",
+    "keywords": ["compliance", "requirements", "high-risk", "harmonised standard", "common specification"],
+    "summary": "High-risk AI systems must comply with the requirements set out in Chapter III Section 2, taking into account intended purpose"
+  },
+  {
+    "article": "Art. 9",
+    "title": "Risk management system",
+    "riskLevel": "high",
+    "keywords": ["risk management", "risk assessment", "residual risk", "lifecycle", "testing", "evaluation", "mitigation"],
+    "summary": "Requires providers of high-risk AI to establish, implement, document and maintain a risk management system throughout the AI system lifecycle"
+  },
+  {
+    "article": "Art. 10",
+    "title": "Data and data governance",
+    "riskLevel": "high",
+    "keywords": ["data governance", "training data", "validation data", "testing data", "bias", "data quality", "dataset", "personal data"],
+    "summary": "Sets requirements for training, validation, and testing data used in high-risk AI systems including data governance practices and bias prevention"
+  },
+  {
+    "article": "Art. 13",
+    "title": "Transparency and provision of information to deployers",
+    "riskLevel": "high",
+    "keywords": ["transparency", "instructions for use", "deployer", "documentation", "disclosure", "information", "explainability"],
+    "summary": "High-risk AI systems must be designed to be sufficiently transparent to enable deployers to interpret and use their outputs appropriately"
+  },
+  {
+    "article": "Art. 14",
+    "title": "Human oversight",
+    "riskLevel": "high",
+    "keywords": ["human oversight", "human control", "override", "monitoring", "intervention", "stop button", "human-in-the-loop"],
+    "summary": "High-risk AI systems must enable effective human oversight by natural persons during use, including ability to override or stop the system"
+  },
+  {
+    "article": "Art. 15",
+    "title": "Accuracy, robustness and cybersecurity",
+    "riskLevel": "high",
+    "keywords": ["accuracy", "robustness", "cybersecurity", "resilience", "adversarial", "attack", "reliability", "performance"],
+    "summary": "High-risk AI systems must achieve appropriate levels of accuracy, robustness, and cybersecurity throughout their lifecycle"
+  },
+  {
+    "article": "Art. 16",
+    "title": "Obligations of providers of high-risk AI systems",
+    "riskLevel": "high",
+    "keywords": ["provider", "obligations", "quality management", "registration", "CE marking", "conformity", "post-market monitoring"],
+    "summary": "Lists obligations for providers of high-risk AI systems including quality management, technical documentation, conformity assessment, and registration"
+  },
+  {
+    "article": "Art. 17",
+    "title": "Quality management system",
+    "riskLevel": "high",
+    "keywords": ["quality management", "QMS", "procedures", "documentation", "ISO", "standard", "systematic"],
+    "summary": "Providers of high-risk AI systems must implement a quality management system covering strategies, testing procedures, and post-market monitoring"
+  },
+  {
+    "article": "Art. 26",
+    "title": "Obligations of deployers of high-risk AI systems",
+    "riskLevel": "high",
+    "keywords": ["deployer", "user", "operator", "obligations", "instructions", "monitoring", "human oversight", "deployment"],
+    "summary": "Deployers of high-risk AI must follow provider instructions, assign human oversight, monitor operation, and suspend use if risks are identified"
+  },
+  {
+    "article": "Art. 27",
+    "title": "Fundamental rights impact assessment for high-risk AI systems",
+    "riskLevel": "high",
+    "keywords": ["fundamental rights", "impact assessment", "FRIA", "human rights", "equality", "non-discrimination", "privacy", "public body"],
+    "summary": "Public sector bodies and certain private entities deploying high-risk AI must conduct a fundamental rights impact assessment before deployment"
+  },
+  {
+    "article": "Art. 28",
+    "title": "Responsibilities along the AI value chain",
+    "riskLevel": "high",
+    "keywords": ["value chain", "distributor", "importer", "third party", "responsibility", "supply chain", "manufacturer"],
+    "summary": "Clarifies provider obligations when modifying AI systems and sets responsibilities for distributors and importers in the AI supply chain"
+  },
+  {
+    "article": "Art. 29",
+    "title": "Obligations of importers",
+    "riskLevel": "high",
+    "keywords": ["importer", "obligations", "conformity", "documentation", "EU representative", "market surveillance"],
+    "summary": "Importers must verify high-risk AI conformity assessment, ensure providers have technical documentation, and maintain records"
+  },
+  {
+    "article": "Art. 40",
+    "title": "Harmonised standards and common specifications",
+    "riskLevel": "high",
+    "keywords": ["harmonised standard", "common specification", "CEN", "CENELEC", "standardisation", "technical requirement", "presumption of conformity"],
+    "summary": "AI systems conforming to harmonised standards or common specifications are presumed to comply with the relevant requirements of the Act"
+  },
+  {
+    "article": "Art. 41",
+    "title": "Common specifications",
+    "riskLevel": "high",
+    "keywords": ["common specification", "implementing act", "technical requirement", "compliance", "fallback", "standardisation gap"],
+    "summary": "When harmonised standards are absent or insufficient, the Commission may adopt common specifications through implementing acts"
+  },
+  {
+    "article": "Art. 43",
+    "title": "Conformity assessment",
+    "riskLevel": "high",
+    "keywords": ["conformity assessment", "notified body", "third-party", "self-assessment", "certificate", "audit", "biometric identification"],
+    "summary": "Specifies conformity assessment procedures for high-risk AI, requiring third-party assessment for biometric identification and certain other uses"
+  },
+  {
+    "article": "Art. 49",
+    "title": "Registration",
+    "riskLevel": "high",
+    "keywords": ["registration", "EU database", "market surveillance", "public access", "transparency", "EUAI database"],
+    "summary": "Providers and deployers must register high-risk AI systems in the EU-wide database before placing on market or putting into service"
+  },
+  {
+    "article": "Art. 50",
+    "title": "Transparency obligations for providers and deployers of certain AI systems",
+    "riskLevel": "limited",
+    "keywords": ["transparency", "disclosure", "chatbot", "deepfake", "synthetic content", "notification", "AI-generated", "watermark"],
+    "summary": "Requires disclosure when users interact with AI systems including chatbots, and mandates labelling of AI-generated synthetic content and deepfakes"
+  },
+  {
+    "article": "Art. 51",
+    "title": "Classification of GPAI models",
+    "riskLevel": "general-purpose",
+    "keywords": ["GPAI", "general-purpose AI", "foundation model", "classification", "systemic risk", "10^25 FLOPs", "large model"],
+    "summary": "Defines classification rules for general-purpose AI models, with special obligations for those posing systemic risk above 10^25 FLOPs training compute"
+  },
+  {
+    "article": "Art. 52",
+    "title": "Obligations for providers of GPAI models",
+    "riskLevel": "general-purpose",
+    "keywords": ["GPAI", "general-purpose AI", "provider", "technical documentation", "copyright", "training data", "model card", "foundation model"],
+    "summary": "GPAI model providers must maintain technical documentation, respect copyright, publish summaries of training data, and provide usage policies"
+  },
+  {
+    "article": "Art. 53",
+    "title": "Obligations for providers of GPAI models with systemic risk",
+    "riskLevel": "general-purpose",
+    "keywords": ["systemic risk", "GPAI", "general-purpose AI", "adversarial testing", "incident reporting", "cybersecurity", "red teaming", "frontier model"],
+    "summary": "Providers of GPAI models with systemic risk must conduct adversarial testing, report serious incidents, ensure cybersecurity, and limit energy use"
+  },
+  {
+    "article": "Art. 71",
+    "title": "Penalties",
+    "riskLevel": "enforcement",
+    "keywords": ["penalty", "fine", "sanction", "administrative", "35 million", "15 million", "7.5 million", "enforcement", "non-compliance"],
+    "summary": "Sets administrative fines up to €35M or 7% of annual turnover for prohibited AI violations, €15M or 3% for other violations, €7.5M for misinformation"
+  },
+  {
+    "article": "Art. 72",
+    "title": "Penalties for Union institutions, bodies, offices and agencies",
+    "riskLevel": "enforcement",
+    "keywords": ["EU institution", "penalty", "fine", "EDPS", "European Data Protection Supervisor", "sanction", "public body"],
+    "summary": "The European Data Protection Supervisor may impose fines on EU institutions and bodies for violations of the AI Act"
+  }
+]
