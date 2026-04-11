@@ -3,7 +3,6 @@ import type {
   AgentBrief,
   ResearchBrief,
   InvestigationAgent,
-  Finding,
 } from './types';
 import type { SwarmConfig } from './config';
 import { selectAgents } from './agents/selector';
@@ -14,6 +13,7 @@ import { FinanceAgent } from './agents/finance';
 import { DevEcoAgent } from './agents/dev-ecosystem';
 import { GeopoliticsAgent } from './agents/geopolitics';
 import { IndustryAgent } from './agents/industry';
+import { synthesizeBriefs, createFallbackBrief } from './synthesis';
 
 // ---------------------------------------------------------------------------
 // Agent factory — creates agent instances with injected LLM client
@@ -119,75 +119,6 @@ async function logStep(
 }
 
 // ---------------------------------------------------------------------------
-// Temporary synthesis — will be replaced by synthesis.ts in Task 8
-// ---------------------------------------------------------------------------
-
-function createFallbackBrief(
-  signal: ScoredSignal,
-  signalId: string,
-): ResearchBrief {
-  return {
-    id: crypto.randomUUID(),
-    signalId,
-    signal,
-    topFindings: [
-      {
-        type: 'fact',
-        headline: signal.title,
-        detail: signal.summary,
-        importance: 'medium',
-      },
-    ],
-    connections: [],
-    suggestedAngles: ['breaking news: report the facts'],
-    unusualFact: signal.title,
-    agentBriefs: [],
-    coverage: { dispatched: 0, succeeded: 0, failed: 0, agents: [] },
-    createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-  };
-}
-
-function temporarySynthesize(
-  signal: ScoredSignal,
-  signalId: string,
-  briefs: AgentBrief[],
-): ResearchBrief {
-  const allFindings = briefs.flatMap((b) => b.findings);
-  const importanceOrder: Record<string, number> = {
-    high: 0,
-    medium: 1,
-    low: 2,
-  };
-  const topFindings: Finding[] = allFindings
-    .sort(
-      (a, b) =>
-        (importanceOrder[a.importance] ?? 1) -
-        (importanceOrder[b.importance] ?? 1),
-    )
-    .slice(0, 10);
-
-  return {
-    id: crypto.randomUUID(),
-    signalId,
-    signal,
-    topFindings,
-    connections: [],
-    suggestedAngles: briefs.flatMap((b) => b.narrativeHooks).slice(0, 5),
-    unusualFact: topFindings[0]?.headline || signal.title,
-    agentBriefs: briefs,
-    coverage: {
-      dispatched: briefs.length,
-      succeeded: briefs.filter((b) => b.status === 'success').length,
-      failed: briefs.filter((b) => b.status === 'failed').length,
-      agents: briefs.map((b) => b.agentId),
-    },
-    createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Main dispatcher
 // ---------------------------------------------------------------------------
 
@@ -265,7 +196,7 @@ export async function dispatchSwarm(
     brief = createFallbackBrief(signal, dbSignalId);
     await logStep(db, runId, 'All agents failed — fallback brief created');
   } else {
-    brief = temporarySynthesize(signal, dbSignalId, succeeded);
+    brief = await synthesizeBriefs(signal, dbSignalId, succeeded, llm);
     // Update coverage to include the full dispatch count (not just succeeded)
     brief.coverage = {
       dispatched: agents.length,

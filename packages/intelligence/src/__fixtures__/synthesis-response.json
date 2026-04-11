@@ -1,0 +1,16 @@
+{
+  "rankedFindings": [
+    { "type": "fact", "headline": "95% MMLU accuracy with 3x fewer params", "detail": "First open model to match GPT-4", "importance": "high" },
+    { "type": "comparison", "headline": "Docker-like adoption trajectory", "detail": "Star velocity matches Docker 2014 growth", "importance": "high" }
+  ],
+  "connections": [
+    {
+      "findingA": { "type": "fact", "headline": "Open source", "detail": "Apache 2.0", "importance": "high" },
+      "findingB": { "type": "comparison", "headline": "Docker parallel", "detail": "Same trajectory", "importance": "high" },
+      "relationship": "Open-source disruption pattern",
+      "narrativeHook": "The last time an open-source project grew this fast, it became Docker"
+    }
+  ],
+  "angles": ["contrarian: why this matters more than GPT-5", "historical: the Docker parallel nobody sees"],
+  "unusualFact": "The model was trained on 10% of GPT-4's compute budget"
+}

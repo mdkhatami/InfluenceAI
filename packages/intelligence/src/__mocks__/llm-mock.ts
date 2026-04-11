@@ -3,6 +3,7 @@ import techFixture from '../__fixtures__/tech-agent-response.json';
 import historyFixture from '../__fixtures__/history-agent-response.json';
 import financeFixture from '../__fixtures__/finance-agent-response.json';
 import devecoFixture from '../__fixtures__/deveco-agent-response.json';
+import synthesisFixture from '../__fixtures__/synthesis-response.json';
 
 /**
  * Creates a mock LLMClient that routes generateJSON calls to fixture files
@@ -22,6 +23,9 @@ export function createMockLLMClient() {
       const prompt = params.systemPrompt.toLowerCase();
 
       // Route to appropriate fixture based on prompt content.
+      if (prompt.includes('synth') || prompt.includes('merge') || prompt.includes('combine findings')) {
+        return synthesisFixture as T;
+      }
       if (prompt.includes('histor')) {
         return historyFixture as T;
       }
