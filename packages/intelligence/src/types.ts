@@ -1,4 +1,5 @@
 import type { ScoredSignal, Platform } from '@influenceai/core';
+export type { ScoredSignal } from '@influenceai/core';
 
 // --- Agent Framework Types ---
 
