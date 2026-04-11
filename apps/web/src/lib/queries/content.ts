@@ -4,6 +4,7 @@ export async function getContentItems(filters?: {
   status?: string;
   pillar?: string;
   platform?: string;
+  pipeline?: string;
   search?: string;
   limit?: number;
   offset?: number;
@@ -17,6 +18,7 @@ export async function getContentItems(filters?: {
   if (filters?.status) query = query.eq('status', filters.status);
   if (filters?.pillar) query = query.eq('pillar_slug', filters.pillar);
   if (filters?.platform) query = query.eq('platform', filters.platform);
+  if (filters?.pipeline) query = query.eq('pipeline_slug', filters.pipeline);
   if (filters?.search) query = query.ilike('title', `%${filters.search}%`);
 
   const limit = filters?.limit ?? 20;
