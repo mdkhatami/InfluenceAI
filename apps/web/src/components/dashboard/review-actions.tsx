@@ -39,7 +39,7 @@ export function ReviewActions({
     if (nextId) {
       router.push(`/review/${nextId}`);
     } else {
-      router.push('/review');
+      router.push('/');
     }
   };
 
@@ -179,6 +179,7 @@ export function ReviewActions({
             onClick={() => setShowReject(!showReject)}
             disabled={isLoading}
             className="w-full border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+            data-review-action="reject"
           >
             <XCircle className="mr-2 h-4 w-4" />
             Reject
@@ -198,6 +199,7 @@ export function ReviewActions({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 rows={3}
                 className="border-zinc-700 bg-zinc-900 text-sm"
+                data-review-action="reject-reason"
               />
               <div className="flex gap-2">
                 <Button
