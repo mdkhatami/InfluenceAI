@@ -1,52 +1,65 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
-import { PIPELINES } from '@influenceai/core';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { StatsCard } from '@/components/dashboard/stats-card';
-import { PipelineTrigger } from '@/components/dashboard/pipeline-trigger';
-import { cn, getAutomationColor, getRelativeTime } from '@/lib/utils';
+import { cn, getRelativeTime } from '@/lib/utils';
+import { PIPELINE_MAP } from '@influenceai/core';
 import { getLastRunPerPipeline, getPipelineStats } from '@/lib/queries/pipelines';
+import { PipelineTriggerButton } from '@/components/dashboard/pipeline-trigger-button';
 import {
   GitBranch,
   Radio,
   Radar,
-  Video,
-  Target,
-  Mic,
-  LayoutGrid,
-  UserCircle,
-  Layers,
-  Activity,
-  CheckCircle,
+  ArrowRight,
+  Clock,
+  Zap,
   FileText,
-  Settings,
+  CheckCircle,
+  XCircle,
+  Timer,
 } from 'lucide-react';
 
+const IMPLEMENTED_SLUGS = ['github-trends', 'signal-amplifier', 'release-radar'] as const;
+
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  GitBranch, Radio, Radar, Video, Target, Mic, LayoutGrid, UserCircle,
+  GitBranch,
+  Radio,
+  Radar,
 };
 
-const automationLabels: Record<string, string> = {
-  high: 'High Automation',
-  medium: 'Medium Automation',
-  low: 'Low Automation',
-  manual: 'Manual',
+const pipelineColors: Record<string, string> = {
+  'github-trends': 'from-blue-500/20 to-blue-600/5',
+  'signal-amplifier': 'from-violet-500/20 to-violet-600/5',
+  'release-radar': 'from-amber-500/20 to-amber-600/5',
 };
 
-const statusDot: Record<string, string> = {
-  idle: 'bg-zinc-500',
-  running: 'bg-blue-400 animate-pulse',
-  success: 'bg-emerald-400',
-  failed: 'bg-red-400',
+const pipelineIconColors: Record<string, string> = {
+  'github-trends': 'text-blue-400 bg-blue-500/10',
+  'signal-amplifier': 'text-violet-400 bg-violet-500/10',
+  'release-radar': 'text-amber-400 bg-amber-500/10',
 };
 
-const statusLabel: Record<string, string> = {
-  idle: 'Idle',
-  running: 'Running',
-  success: 'Last run succeeded',
-  failed: 'Last run failed',
-};
+function parseCronToHuman(cron?: string): string {
+  if (!cron) return 'On-demand';
+  const parts = cron.split(' ');
+  if (parts.length !== 5) return cron;
+  const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+
+  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '*') {
+    if (hour.startsWith('*/')) {
+      return `Every ${hour.slice(2)} hours`;
+    }
+    return `Daily at ${hour}:${minute.padStart(2, '0')} UTC`;
+  }
+  if (dayOfWeek !== '*') {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const day = days[parseInt(dayOfWeek)] ?? dayOfWeek;
+    return `${day} at ${hour}:${minute.padStart(2, '0')} UTC`;
+  }
+  return cron;
+}
 
 function mapRunStatus(dbStatus?: string): 'idle' | 'running' | 'success' | 'failed' {
   if (!dbStatus) return 'idle';
@@ -56,8 +69,15 @@ function mapRunStatus(dbStatus?: string): 'idle' | 'running' | 'success' | 'fail
   return 'idle';
 }
 
+const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; label: string }> = {
+  idle: { icon: Timer, color: 'text-zinc-500', label: 'Never run' },
+  running: { icon: Zap, color: 'text-blue-400', label: 'Running' },
+  success: { icon: CheckCircle, color: 'text-emerald-400', label: 'Succeeded' },
+  failed: { icon: XCircle, color: 'text-red-400', label: 'Failed' },
+};
+
 export default async function PipelinesPage() {
-  let lastRuns: Record<string, { status: string; created_at: string; started_at?: string }> = {};
+  let lastRuns: Record<string, { status: string; created_at: string; items_generated?: number }> = {};
   let pipelineStats = { totalRuns: 0, successRate: 0, totalGenerated: 0 };
 
   try {
@@ -65,67 +85,54 @@ export default async function PipelinesPage() {
       getLastRunPerPipeline(),
       getPipelineStats(),
     ]);
-  } catch (e) {
+  } catch {
     // Fallback to defaults on error
   }
 
-  const activeToday = Object.values(lastRuns).filter((run) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Date(run.created_at).getTime() >= today.getTime();
-  }).length;
+  const pipelines = IMPLEMENTED_SLUGS.map((slug) => PIPELINE_MAP.get(slug)!).filter(Boolean);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-zinc-50">Automation Pipelines</h1>
-        <p className="mt-1 text-zinc-400">Manage your content generation workflows</p>
+        <h1 className="text-2xl font-bold text-zinc-50">Pipelines</h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          {pipelineStats.totalRuns} total runs &middot; {pipelineStats.successRate}% success rate &middot; {pipelineStats.totalGenerated} items generated
+        </p>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Total Pipelines" value={String(PIPELINES.length)} change="All configured" changeType="neutral" icon={Layers} />
-        <StatsCard title="Active Today" value={String(activeToday)} change="Runs since midnight" changeType="neutral" icon={Activity} />
-        <StatsCard title="Success Rate" value={pipelineStats.totalRuns > 0 ? `${pipelineStats.successRate}%` : '--'} change={`${pipelineStats.totalRuns} total runs`} changeType="neutral" icon={CheckCircle} />
-        <StatsCard title="Content Generated" value={String(pipelineStats.totalGenerated)} change="All time" changeType="neutral" icon={FileText} />
-      </div>
-
-      {/* Pipeline Grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {PIPELINES.map((pipeline) => {
+      {/* Pipeline Cards */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {pipelines.map((pipeline) => {
           const Icon = iconMap[pipeline.icon] || GitBranch;
           const run = lastRuns[pipeline.slug];
           const status = mapRunStatus(run?.status);
-          const lastRunAt = run?.started_at ?? run?.created_at;
-          const isGithubTrends = pipeline.slug === 'github-trends';
+          const StatusIcon = statusConfig[status].icon;
+          const schedule = parseCronToHuman(pipeline.schedule);
+          const iconColor = pipelineIconColors[pipeline.slug] ?? 'text-zinc-400 bg-zinc-800';
+          const gradient = pipelineColors[pipeline.slug] ?? '';
 
           return (
             <Card
               key={pipeline.slug}
-              className={cn(
-                'flex flex-col transition-all duration-200 hover:border-zinc-700',
-                isGithubTrends && 'border-blue-500/30 shadow-lg shadow-blue-500/5'
-              )}
+              className="flex flex-col overflow-hidden"
             >
+              {/* Gradient accent bar */}
+              <div className={cn('h-1 bg-gradient-to-r', gradient)} />
+
               <CardContent className="flex-1 p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'rounded-lg p-2',
-                      isGithubTrends ? 'bg-blue-500/10' : 'bg-zinc-800'
-                    )}>
-                      <Icon className={cn('h-5 w-5', isGithubTrends ? 'text-blue-400' : 'text-zinc-400')} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-50">{pipeline.name}</h3>
-                      <p className="text-xs text-zinc-500">{pipeline.outputVolume}</p>
+                {/* Icon + Name */}
+                <div className="flex items-start gap-3">
+                  <div className={cn('rounded-lg p-2.5', iconColor)}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-zinc-50">{pipeline.name}</h3>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 text-zinc-500" />
+                      <span className="text-xs text-zinc-500">{schedule}</span>
                     </div>
                   </div>
-                  <Badge className={cn('text-xs', getAutomationColor(pipeline.automationLevel))}>
-                    {automationLabels[pipeline.automationLevel]}
-                  </Badge>
                 </div>
 
                 {/* Description */}
@@ -133,56 +140,44 @@ export default async function PipelinesPage() {
                   {pipeline.description}
                 </p>
 
-                {/* Status */}
+                {/* Last run status */}
                 <div className="mt-4 flex items-center gap-2">
-                  <div className={cn('h-2 w-2 rounded-full', statusDot[status])} />
-                  <span className="text-xs text-zinc-400">{statusLabel[status]}</span>
-                  {lastRunAt && (
+                  <StatusIcon className={cn('h-3.5 w-3.5', statusConfig[status].color)} />
+                  <span className={cn('text-xs', statusConfig[status].color)}>
+                    {statusConfig[status].label}
+                  </span>
+                  {run?.created_at && (
                     <>
                       <span className="text-xs text-zinc-600">&middot;</span>
-                      <span className="text-xs text-zinc-500">{getRelativeTime(lastRunAt)}</span>
+                      <span className="text-xs text-zinc-500">{getRelativeTime(run.created_at)}</span>
                     </>
                   )}
                 </div>
 
-                {/* Steps Preview */}
-                <div className="mt-4 flex items-center gap-1">
-                  <span className="mr-2 text-xs text-zinc-500">{pipeline.steps.length} steps</span>
-                  {pipeline.steps.map((step) => (
-                    <div
-                      key={step.id}
-                      className={cn(
-                        'h-1.5 w-1.5 rounded-full',
-                        step.type === 'ingest' ? 'bg-blue-400' :
-                        step.type === 'filter' ? 'bg-amber-400' :
-                        step.type === 'generate' ? 'bg-violet-400' :
-                        step.type === 'review' ? 'bg-orange-400' :
-                        step.type === 'publish' ? 'bg-emerald-400' :
-                        step.type === 'visual' ? 'bg-pink-400' :
-                        step.type === 'audio_video' ? 'bg-indigo-400' : 'bg-zinc-500'
-                      )}
-                    />
-                  ))}
-                </div>
+                {/* Items generated */}
+                {run?.items_generated !== undefined && run.items_generated > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <FileText className="h-3 w-3 text-zinc-500" />
+                    <span className="text-xs text-zinc-500">
+                      {run.items_generated} item{run.items_generated !== 1 ? 's' : ''} last run
+                    </span>
+                  </div>
+                )}
               </CardContent>
 
               <CardFooter className="gap-2 border-t border-zinc-800 px-6 py-4">
-                {isGithubTrends ? (
-                  <Link href="/pipelines/github-trends" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Settings className="mr-2 h-3 w-3" />
-                      Configure
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Settings className="mr-2 h-3 w-3" />
-                    Configure
+                <PipelineTriggerButton
+                  pipelineSlug={pipeline.slug}
+                  pipelineName={pipeline.name}
+                  size="sm"
+                  className="flex-1"
+                />
+                <Link href={`/pipelines/${pipeline.slug}`} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    View Details
+                    <ArrowRight className="ml-1.5 h-3 w-3" />
                   </Button>
-                )}
-                <div className="flex-1">
-                  <PipelineTrigger pipelineSlug={pipeline.slug} />
-                </div>
+                </Link>
               </CardFooter>
             </Card>
           );
