@@ -1,0 +1,592 @@
+[
+  {
+    "id": "docker-2014",
+    "name": "Docker",
+    "year": 2014,
+    "category": "infrastructure",
+    "pattern": "open-source-disruption",
+    "keywords": ["container", "docker", "virtualization", "devops", "infrastructure"],
+    "trajectory": "Rapid developer adoption → enterprise resistance → industry consolidation",
+    "lessons": ["Open source can displace commercial infrastructure", "Developer adoption precedes enterprise adoption by 6-12 months"]
+  },
+  {
+    "id": "kubernetes-2016",
+    "name": "Kubernetes",
+    "year": 2016,
+    "category": "infrastructure",
+    "pattern": "platform-standardization",
+    "keywords": ["kubernetes", "k8s", "orchestration", "container", "cluster", "pod", "deployment"],
+    "trajectory": "Google open-sourced → CNCF adoption → de-facto standard for container orchestration",
+    "lessons": ["Vendor backing accelerates open-source adoption", "Complexity can be a moat if managed by tooling"]
+  },
+  {
+    "id": "aws-lambda-2014",
+    "name": "AWS Lambda",
+    "year": 2014,
+    "category": "cloud",
+    "pattern": "paradigm-shift",
+    "keywords": ["lambda", "serverless", "function", "faas", "event-driven", "aws"],
+    "trajectory": "Niche experiment → mainstream serverless movement → every major cloud provider offers equivalent",
+    "lessons": ["Abstraction layers drive adoption by reducing operational burden", "New paradigms often start with narrow use cases"]
+  },
+  {
+    "id": "mapreduce-2004",
+    "name": "MapReduce",
+    "year": 2004,
+    "category": "infrastructure",
+    "pattern": "academic-to-industry",
+    "keywords": ["mapreduce", "hadoop", "distributed", "batch", "big data", "google"],
+    "trajectory": "Google paper → Hadoop implementation → widespread adoption → displaced by Spark",
+    "lessons": ["Paradigms from papers can reshape industries within a decade", "First movers can be displaced by better implementations"]
+  },
+  {
+    "id": "tensorflow-2015",
+    "name": "TensorFlow",
+    "year": 2015,
+    "category": "ml",
+    "pattern": "open-source-ml",
+    "keywords": ["tensorflow", "deep learning", "neural network", "ml", "google brain", "machine learning"],
+    "trajectory": "Google releases → broad research adoption → PyTorch competition → still widely used in production",
+    "lessons": ["Open sourcing ML tools creates large developer ecosystems", "Second movers with better UX can challenge incumbents"]
+  },
+  {
+    "id": "pytorch-2017",
+    "name": "PyTorch",
+    "year": 2017,
+    "category": "ml",
+    "pattern": "ux-driven-disruption",
+    "keywords": ["pytorch", "deep learning", "neural network", "torch", "facebook", "dynamic graph"],
+    "trajectory": "Academic favorite → displaced TensorFlow in research → gained production traction",
+    "lessons": ["Better developer experience can dethrone incumbents even in enterprise", "Research community adoption predicts production adoption"]
+  },
+  {
+    "id": "iphone-2007",
+    "name": "iPhone",
+    "year": 2007,
+    "category": "mobile",
+    "pattern": "platform-creation",
+    "keywords": ["iphone", "mobile", "smartphone", "ios", "app store", "touch", "apple"],
+    "trajectory": "Disrupted existing mobile players → created app economy → defined modern computing paradigm",
+    "lessons": ["Platform creation is more valuable than product creation", "Incumbents can miss paradigm shifts even with resources"]
+  },
+  {
+    "id": "android-2008",
+    "name": "Android",
+    "year": 2008,
+    "category": "mobile",
+    "pattern": "open-platform-dominance",
+    "keywords": ["android", "mobile", "google", "open source", "smartphone", "app"],
+    "trajectory": "Open alternative to iOS → OEM adoption → market share dominance in global markets",
+    "lessons": ["Open platforms can win on volume even with lower margin ecosystems", "Hardware partnerships accelerate platform distribution"]
+  },
+  {
+    "id": "facebook-2004",
+    "name": "Facebook",
+    "year": 2004,
+    "category": "social",
+    "pattern": "network-effects",
+    "keywords": ["facebook", "social network", "social media", "community", "feed", "profile"],
+    "trajectory": "College network → mass adoption → global social graph monopoly",
+    "lessons": ["Network effects create near-unassailable moats", "Starting with a focused community beats trying to boil the ocean"]
+  },
+  {
+    "id": "twitter-2006",
+    "name": "Twitter",
+    "year": 2006,
+    "category": "social",
+    "pattern": "constraint-driven-innovation",
+    "keywords": ["twitter", "microblog", "tweet", "social media", "real-time", "feed"],
+    "trajectory": "Niche microblogging → real-time news platform → global conversation layer",
+    "lessons": ["Constraints can define product identity", "Real-time information has unique value in social networks"]
+  },
+  {
+    "id": "bitcoin-2009",
+    "name": "Bitcoin",
+    "year": 2009,
+    "category": "blockchain",
+    "pattern": "trustless-system",
+    "keywords": ["bitcoin", "cryptocurrency", "blockchain", "decentralized", "crypto", "proof-of-work"],
+    "trajectory": "Whitepaper → cypherpunk adoption → speculative mania → institutional adoption",
+    "lessons": ["Trustless systems remove intermediaries at the cost of complexity", "Ideological communities drive early adoption before commercial interest"]
+  },
+  {
+    "id": "ethereum-2015",
+    "name": "Ethereum",
+    "year": 2015,
+    "category": "blockchain",
+    "pattern": "programmable-blockchain",
+    "keywords": ["ethereum", "smart contract", "defi", "blockchain", "solidity", "web3", "token"],
+    "trajectory": "Smart contracts → ICO boom → DeFi ecosystem → NFT wave → L2 scaling challenges",
+    "lessons": ["Programmability unlocks exponential ecosystem growth", "Scalability becomes the bottleneck when adoption exceeds design assumptions"]
+  },
+  {
+    "id": "git-2005",
+    "name": "Git",
+    "year": 2005,
+    "category": "infrastructure",
+    "pattern": "developer-tooling",
+    "keywords": ["git", "version control", "distributed", "repository", "commit", "branch", "merge"],
+    "trajectory": "Created for Linux kernel → GitHub amplification → universal development standard",
+    "lessons": ["Distributed systems outcompete centralized ones at scale", "Tooling that enables collaboration compounds in value"]
+  },
+  {
+    "id": "linux-1991",
+    "name": "Linux",
+    "year": 1991,
+    "category": "infrastructure",
+    "pattern": "open-source-disruption",
+    "keywords": ["linux", "open source", "kernel", "unix", "os", "operating system", "gnu"],
+    "trajectory": "Hobbyist project → server dominance → embedded systems → cloud infrastructure backbone",
+    "lessons": ["Open source quality can exceed commercial software over time", "Community-maintained infrastructure outlasts vendor-controlled alternatives"]
+  },
+  {
+    "id": "java-1995",
+    "name": "Java",
+    "year": 1995,
+    "category": "infrastructure",
+    "pattern": "cross-platform-promise",
+    "keywords": ["java", "jvm", "bytecode", "write once run anywhere", "enterprise", "spring"],
+    "trajectory": "Browser applets → server-side dominance → enterprise standard → Android renaissance",
+    "lessons": ["Cross-platform promises resonate strongly with enterprises", "Verbose ecosystems can still win through stability and tooling"]
+  },
+  {
+    "id": "javascript-1995",
+    "name": "JavaScript",
+    "year": 1995,
+    "category": "web",
+    "pattern": "ubiquity-through-constraints",
+    "keywords": ["javascript", "js", "browser", "web", "ecmascript", "node", "frontend"],
+    "trajectory": "Browser scripting → AJAX revolution → Node.js server-side → dominant language",
+    "lessons": ["Being embedded in a universal platform creates insurmountable distribution advantage", "Language limitations drive creative workarounds that eventually become features"]
+  },
+  {
+    "id": "python-1991",
+    "name": "Python",
+    "year": 1991,
+    "category": "infrastructure",
+    "pattern": "readability-driven-adoption",
+    "keywords": ["python", "scripting", "data science", "ml", "readable", "numpy", "scipy"],
+    "trajectory": "Scripting language → scientific computing → machine learning lingua franca",
+    "lessons": ["Readability compounds adoption by lowering barriers to new domains", "Ecosystem depth (numpy, pandas, sklearn) creates switching costs"]
+  },
+  {
+    "id": "react-2013",
+    "name": "React",
+    "year": 2013,
+    "category": "web",
+    "pattern": "component-model",
+    "keywords": ["react", "component", "jsx", "virtual dom", "frontend", "ui", "facebook"],
+    "trajectory": "Facebook internal tool → open source → frontend standard → ecosystem fragmentation",
+    "lessons": ["Component models dramatically improve developer productivity at scale", "Meta-frameworks often outgrow their original context"]
+  },
+  {
+    "id": "nodejs-2009",
+    "name": "Node.js",
+    "year": 2009,
+    "category": "web",
+    "pattern": "language-unification",
+    "keywords": ["node", "nodejs", "javascript", "server-side", "event loop", "npm", "v8"],
+    "trajectory": "JavaScript on the server → npm ecosystem explosion → full-stack JS development",
+    "lessons": ["Language unification across stack reduces context switching costs", "Package ecosystems grow super-linearly with adoption"]
+  },
+  {
+    "id": "mongodb-2009",
+    "name": "MongoDB",
+    "year": 2009,
+    "category": "database",
+    "pattern": "schema-flexibility",
+    "keywords": ["mongodb", "nosql", "document", "json", "flexible schema", "database"],
+    "trajectory": "Developer-friendly NoSQL → rapid startup adoption → enterprise NoSQL leader",
+    "lessons": ["Schema flexibility trades consistency for developer velocity", "Developer-first products spread bottom-up in organizations"]
+  },
+  {
+    "id": "redis-2009",
+    "name": "Redis",
+    "year": 2009,
+    "category": "database",
+    "pattern": "specialized-performance",
+    "keywords": ["redis", "cache", "in-memory", "key-value", "pub-sub", "session"],
+    "trajectory": "Caching layer → session store → messaging → multi-model database",
+    "lessons": ["Specialized tools for common pain points achieve rapid adoption", "Single-purpose tools expand scope over time"]
+  },
+  {
+    "id": "elasticsearch-2010",
+    "name": "Elasticsearch",
+    "year": 2010,
+    "category": "database",
+    "pattern": "search-as-a-service",
+    "keywords": ["elasticsearch", "search", "full-text", "lucene", "analytics", "kibana", "elk"],
+    "trajectory": "Distributed search engine → ELK stack → observability platform",
+    "lessons": ["Packaging complementary tools accelerates enterprise adoption", "Search infrastructure is universally needed but rarely differentiated"]
+  },
+  {
+    "id": "spark-2014",
+    "name": "Apache Spark",
+    "year": 2014,
+    "category": "infrastructure",
+    "pattern": "performance-displacement",
+    "keywords": ["spark", "hadoop", "big data", "distributed", "in-memory", "streaming", "pyspark"],
+    "trajectory": "Faster Hadoop alternative → big data standard → unified batch and streaming",
+    "lessons": ["10x performance improvements justify complete rewrites", "In-memory computing changed data processing economics"]
+  },
+  {
+    "id": "kafka-2011",
+    "name": "Apache Kafka",
+    "year": 2011,
+    "category": "infrastructure",
+    "pattern": "event-streaming",
+    "keywords": ["kafka", "streaming", "event", "message queue", "pub-sub", "log", "pipeline"],
+    "trajectory": "LinkedIn internal → open source → backbone of data pipelines",
+    "lessons": ["Log-based architectures provide replay and audit capabilities commercial MQ lacks", "Infrastructure created by hyperscalers solves problems others haven't faced yet"]
+  },
+  {
+    "id": "graphql-2015",
+    "name": "GraphQL",
+    "year": 2015,
+    "category": "web",
+    "pattern": "api-paradigm-shift",
+    "keywords": ["graphql", "api", "query", "schema", "facebook", "rest", "data fetching"],
+    "trajectory": "Facebook internal → open source → alternative to REST for complex frontends",
+    "lessons": ["Over-fetching and under-fetching are universal API pain points", "Client-driven queries shift power from backend to frontend teams"]
+  },
+  {
+    "id": "typescript-2012",
+    "name": "TypeScript",
+    "year": 2012,
+    "category": "web",
+    "pattern": "type-safety-adoption",
+    "keywords": ["typescript", "types", "javascript", "static typing", "microsoft", "tsc"],
+    "trajectory": "Microsoft experiment → gradual JavaScript adoption → de-facto standard for large JS projects",
+    "lessons": ["Type systems reduce bugs in proportion to codebase complexity", "Gradual adoption paths reduce migration resistance"]
+  },
+  {
+    "id": "vscode-2015",
+    "name": "VS Code",
+    "year": 2015,
+    "category": "infrastructure",
+    "pattern": "developer-tooling",
+    "keywords": ["vscode", "editor", "ide", "microsoft", "extension", "lsp", "electron"],
+    "trajectory": "Microsoft open-source bet → rapid market share gain → dominant code editor",
+    "lessons": ["Free premium tooling displaces paid alternatives quickly in developer markets", "Extension ecosystems create lock-in more effectively than core features"]
+  },
+  {
+    "id": "chrome-2008",
+    "name": "Google Chrome",
+    "year": 2008,
+    "category": "web",
+    "pattern": "performance-platform",
+    "keywords": ["chrome", "browser", "v8", "javascript", "google", "web platform"],
+    "trajectory": "Faster browser alternative → market share dominance → web platform definer",
+    "lessons": ["Browser performance improvements enabled entire new categories of web apps", "Distribution through default installs amplifies quality advantages"]
+  },
+  {
+    "id": "app-store-2008",
+    "name": "App Store",
+    "year": 2008,
+    "category": "mobile",
+    "pattern": "marketplace-creation",
+    "keywords": ["app store", "marketplace", "ios", "mobile", "distribution", "developer", "apple"],
+    "trajectory": "Curated distribution → app economy creation → $100B+ annual revenue",
+    "lessons": ["Platform owners capture disproportionate value from marketplace economics", "Curation trade-offs define platform character"]
+  },
+  {
+    "id": "aws-2006",
+    "name": "AWS",
+    "year": 2006,
+    "category": "cloud",
+    "pattern": "infrastructure-as-service",
+    "keywords": ["aws", "cloud", "ec2", "s3", "amazon", "infrastructure", "iaas"],
+    "trajectory": "Internal Amazon infrastructure → public cloud pioneer → dominant cloud provider",
+    "lessons": ["Internal tools often solve universal problems better than dedicated products", "Infrastructure businesses have massive scale advantages"]
+  },
+  {
+    "id": "azure-2010",
+    "name": "Microsoft Azure",
+    "year": 2010,
+    "category": "cloud",
+    "pattern": "enterprise-cloud",
+    "keywords": ["azure", "microsoft", "cloud", "enterprise", "office 365", "hybrid"],
+    "trajectory": "Late cloud entrant → leveraged enterprise relationships → strong #2 position",
+    "lessons": ["Enterprise relationships provide durable competitive advantages", "Late movers can win in large markets through distribution not innovation"]
+  },
+  {
+    "id": "hadoop-2006",
+    "name": "Hadoop",
+    "year": 2006,
+    "category": "infrastructure",
+    "pattern": "open-source-disruption",
+    "keywords": ["hadoop", "hdfs", "mapreduce", "big data", "distributed", "yahoo", "cloudera"],
+    "trajectory": "Yahoo implementation of Google MapReduce paper → big data ecosystem → displaced by Spark",
+    "lessons": ["Academic papers can inspire industry implementations that outlast the originators", "First mover advantage can be overtaken by better implementations"]
+  },
+  {
+    "id": "mysql-2000",
+    "name": "MySQL",
+    "year": 2000,
+    "category": "database",
+    "pattern": "open-source-database",
+    "keywords": ["mysql", "sql", "relational", "database", "open source", "lamp"],
+    "trajectory": "LAMP stack foundation → web application standard → Oracle acquisition controversy",
+    "lessons": ["Open source databases disrupted commercial database vendors bottom-up", "Corporate acquisitions of open source projects cause community forks"]
+  },
+  {
+    "id": "postgresql-1996",
+    "name": "PostgreSQL",
+    "year": 1996,
+    "category": "database",
+    "pattern": "academic-open-source",
+    "keywords": ["postgresql", "postgres", "sql", "relational", "acid", "database", "open source"],
+    "trajectory": "UC Berkeley research → community-maintained → preferred relational database for new projects",
+    "lessons": ["Community governance produces more trusted software than corporate stewardship", "Feature completeness compounds over decades"]
+  },
+  {
+    "id": "rust-2015",
+    "name": "Rust",
+    "year": 2015,
+    "category": "infrastructure",
+    "pattern": "safety-performance",
+    "keywords": ["rust", "memory safety", "systems programming", "ownership", "borrow checker", "mozilla"],
+    "trajectory": "Mozilla research → systems programming alternative → security-focused adoption",
+    "lessons": ["Memory safety benefits become irresistible as security threats increase", "Steep learning curves don't prevent adoption if value proposition is strong enough"]
+  },
+  {
+    "id": "go-2009",
+    "name": "Go",
+    "year": 2009,
+    "category": "infrastructure",
+    "pattern": "simplicity-at-scale",
+    "keywords": ["go", "golang", "google", "concurrency", "goroutine", "microservice"],
+    "trajectory": "Google infrastructure language → cloud native ecosystem → microservices standard",
+    "lessons": ["Simplicity scales better than expressiveness in large engineering organizations", "Concurrency primitives shape architectural patterns"]
+  },
+  {
+    "id": "swift-2014",
+    "name": "Swift",
+    "year": 2014,
+    "category": "mobile",
+    "pattern": "platform-language",
+    "keywords": ["swift", "ios", "apple", "objective-c", "xcode", "mobile development"],
+    "trajectory": "Objective-C replacement → iOS standard → server-side Swift attempts",
+    "lessons": ["Platform vendors can force language migrations in captive ecosystems", "Modern language features improve adoption when paired with platform access"]
+  },
+  {
+    "id": "gpt3-2020",
+    "name": "GPT-3",
+    "year": 2020,
+    "category": "ai",
+    "pattern": "scale-breakthrough",
+    "keywords": ["gpt-3", "language model", "llm", "openai", "few-shot", "natural language", "transformer"],
+    "trajectory": "API-only release → few-shot learning demonstrations → new product category creation",
+    "lessons": ["Scale can produce emergent capabilities not present in smaller models", "API-first model distribution creates ecosystem without open-sourcing weights"]
+  },
+  {
+    "id": "dalle-2021",
+    "name": "DALL-E",
+    "year": 2021,
+    "category": "ai",
+    "pattern": "text-to-image",
+    "keywords": ["dall-e", "image generation", "text-to-image", "openai", "generative ai", "diffusion"],
+    "trajectory": "Research demo → consumer API → creative industry disruption",
+    "lessons": ["Visual AI capabilities create broader consumer awareness than text AI", "Creative professional disruption generates outsized media attention"]
+  },
+  {
+    "id": "chatgpt-2022",
+    "name": "ChatGPT",
+    "year": 2022,
+    "category": "ai",
+    "pattern": "consumer-ai-adoption",
+    "keywords": ["chatgpt", "openai", "llm", "chat", "conversational ai", "assistant", "gpt"],
+    "trajectory": "1M users in 5 days → mainstream AI adoption catalyst → competitive gold rush",
+    "lessons": ["UX wrapping technology can be more impactful than technology itself", "Consumer adoption of AI happened faster than enterprise adoption predictions"]
+  },
+  {
+    "id": "stable-diffusion-2022",
+    "name": "Stable Diffusion",
+    "year": 2022,
+    "category": "ai",
+    "pattern": "open-source-ai",
+    "keywords": ["stable diffusion", "image generation", "diffusion model", "open source", "text-to-image", "latent diffusion"],
+    "trajectory": "Open weights release → local deployment → commercial fine-tuning ecosystem",
+    "lessons": ["Open source AI models enable innovation that closed APIs cannot", "Community fine-tuning produces specialization at scale"]
+  },
+  {
+    "id": "github-copilot-2021",
+    "name": "GitHub Copilot",
+    "year": 2021,
+    "category": "ai",
+    "pattern": "ai-developer-tools",
+    "keywords": ["copilot", "code generation", "github", "openai", "ai assistant", "autocomplete", "coding"],
+    "trajectory": "Technical preview → paid subscription → developer workflow standard",
+    "lessons": ["AI embedded in existing workflows has higher adoption than standalone tools", "Code generation is a wedge into broader developer productivity market"]
+  },
+  {
+    "id": "alphago-2016",
+    "name": "AlphaGo",
+    "year": 2016,
+    "category": "ai",
+    "pattern": "ai-superhuman-milestone",
+    "keywords": ["alphago", "deepmind", "reinforcement learning", "go", "superhuman", "game ai"],
+    "trajectory": "Beat world champion → broader public AI awareness → legitimized deep learning research",
+    "lessons": ["Superhuman game AI benchmarks shift public and institutional perception of AI capabilities", "Demonstration on prestigious human domains creates media amplification"]
+  },
+  {
+    "id": "alexnet-2012",
+    "name": "AlexNet",
+    "year": 2012,
+    "category": "ml",
+    "pattern": "deep-learning-breakthrough",
+    "keywords": ["alexnet", "imagenet", "convolutional", "cnn", "deep learning", "gpu", "classification"],
+    "trajectory": "ImageNet competition win → deep learning era begins → GPU computing investment surge",
+    "lessons": ["Benchmark victories on standardized tasks shift entire research communities", "Hardware availability (GPUs) was the missing ingredient for neural network scale"]
+  },
+  {
+    "id": "deepmind-2014",
+    "name": "DeepMind",
+    "year": 2014,
+    "category": "ai",
+    "pattern": "ai-lab-acquisition",
+    "keywords": ["deepmind", "google", "reinforcement learning", "atari", "acquisition", "research lab"],
+    "trajectory": "Atari games demo → Google acquisition → AlphaGo → AlphaFold protein folding breakthrough",
+    "lessons": ["AI capabilities demonstrations drive acquisition interest from platform companies", "Long-horizon research bets produce unexpected breakthroughs"]
+  },
+  {
+    "id": "transformers-2017",
+    "name": "Attention Is All You Need (Transformers)",
+    "year": 2017,
+    "category": "ml",
+    "pattern": "architecture-paradigm-shift",
+    "keywords": ["transformer", "attention", "self-attention", "bert", "gpt", "nlp", "paper", "architecture"],
+    "trajectory": "Google research paper → replaced RNNs → foundation for all modern LLMs",
+    "lessons": ["Architectural papers can reset entire research directions overnight", "Simple mechanisms (attention) can outperform complex specialized designs"]
+  },
+  {
+    "id": "bert-2018",
+    "name": "BERT",
+    "year": 2018,
+    "category": "ml",
+    "pattern": "pretraining-paradigm",
+    "keywords": ["bert", "google", "pretraining", "transfer learning", "nlp", "fine-tuning", "language model"],
+    "trajectory": "Google pretraining → fine-tuning paradigm → dominated NLP benchmarks for 3 years",
+    "lessons": ["Pretraining on large datasets then fine-tuning is more efficient than task-specific models", "Benchmark dominance drives rapid community adoption of new paradigms"]
+  },
+  {
+    "id": "imagenet-2009",
+    "name": "ImageNet",
+    "year": 2009,
+    "category": "ml",
+    "pattern": "benchmark-creation",
+    "keywords": ["imagenet", "dataset", "computer vision", "benchmark", "classification", "labeling"],
+    "trajectory": "Stanford dataset → annual competition → catalyst for deep learning revolution",
+    "lessons": ["Shared benchmarks coordinate community research efforts more effectively than any other mechanism", "Data availability is as important as algorithmic progress"]
+  },
+  {
+    "id": "siri-2011",
+    "name": "Siri",
+    "year": 2011,
+    "category": "ai",
+    "pattern": "consumer-voice-assistant",
+    "keywords": ["siri", "apple", "voice assistant", "natural language", "assistant", "voice recognition"],
+    "trajectory": "Apple acquisition → iPhone integration → early adoption → overtaken by Google Assistant and Alexa",
+    "lessons": ["Being first in a category doesn't guarantee leadership", "Platform integration creates initial adoption but requires continuous improvement"]
+  },
+  {
+    "id": "alexa-2014",
+    "name": "Amazon Alexa",
+    "year": 2014,
+    "category": "ai",
+    "pattern": "voice-platform",
+    "keywords": ["alexa", "amazon", "echo", "voice assistant", "smart speaker", "skills", "voice"],
+    "trajectory": "Echo device → smart home hub → third-party skills ecosystem → LLM upgrade challenges",
+    "lessons": ["Hardware bundles create platform adoption that software-only assistants struggle to match", "Skill ecosystems create developer investment in closed platforms"]
+  },
+  {
+    "id": "stripe-2011",
+    "name": "Stripe",
+    "year": 2011,
+    "category": "web",
+    "pattern": "developer-first-fintech",
+    "keywords": ["stripe", "payments", "api", "developer", "fintech", "billing", "subscription"],
+    "trajectory": "Simple payments API → developer adoption → enterprise expansion → fintech infrastructure",
+    "lessons": ["Developer-first products grow through bottom-up adoption in organizations", "Simplicity in complex regulated domains creates durable advantages"]
+  },
+  {
+    "id": "slack-2013",
+    "name": "Slack",
+    "year": 2013,
+    "category": "social",
+    "pattern": "enterprise-collaboration",
+    "keywords": ["slack", "messaging", "team", "collaboration", "workspace", "channel", "enterprise"],
+    "trajectory": "Gaming company pivot → developer adoption → enterprise standard → Microsoft Teams competition",
+    "lessons": ["Pivoting from a failed product can produce more successful outcomes", "Bottoms-up SaaS adoption in enterprise precedes top-down procurement"]
+  },
+  {
+    "id": "kubernetes-helm-2016",
+    "name": "Helm",
+    "year": 2016,
+    "category": "infrastructure",
+    "pattern": "package-manager",
+    "keywords": ["helm", "kubernetes", "package", "chart", "deployment", "k8s", "release"],
+    "trajectory": "Kubernetes package manager → CNCF graduation → production deployment standard",
+    "lessons": ["Package managers reduce adoption friction for complex infrastructure tools", "Ecosystem tooling is as important as the core platform"]
+  },
+  {
+    "id": "nextjs-2016",
+    "name": "Next.js",
+    "year": 2016,
+    "category": "web",
+    "pattern": "framework-opinionation",
+    "keywords": ["nextjs", "next.js", "react", "ssr", "static", "vercel", "framework", "fullstack"],
+    "trajectory": "SSR for React → Vercel backing → full-stack React framework standard",
+    "lessons": ["Opinionated frameworks accelerate delivery at the cost of flexibility", "Framework-company alignment (Vercel + Next.js) creates compounding distribution advantages"]
+  },
+  {
+    "id": "huggingface-2019",
+    "name": "Hugging Face",
+    "year": 2019,
+    "category": "ai",
+    "pattern": "model-hub",
+    "keywords": ["hugging face", "transformers", "model hub", "fine-tuning", "nlp", "open source ml"],
+    "trajectory": "NLP library → model hub → AI GitHub → infrastructure for open source AI",
+    "lessons": ["Centralized model repositories accelerate AI research iteration", "Community infrastructure creates network effects faster than pure research output"]
+  },
+  {
+    "id": "openai-api-2020",
+    "name": "OpenAI API",
+    "year": 2020,
+    "category": "ai",
+    "pattern": "ai-api-economy",
+    "keywords": ["openai", "api", "gpt", "completion", "embedding", "fine-tuning", "llm api"],
+    "trajectory": "GPT-3 API release → AI startup ecosystem creation → standard interface for LLMs",
+    "lessons": ["API-first AI distribution creates ecosystems without open-sourcing weights", "Standard interfaces (OpenAI API) become de-facto specifications others implement"]
+  },
+  {
+    "id": "langchain-2022",
+    "name": "LangChain",
+    "year": 2022,
+    "category": "ai",
+    "pattern": "llm-orchestration",
+    "keywords": ["langchain", "llm", "agent", "chain", "orchestration", "rag", "retrieval", "prompt"],
+    "trajectory": "GitHub project → rapid AI developer adoption → framework criticism → continued ecosystem growth",
+    "lessons": ["Timing with technology adoption waves creates rapid growth", "Abstraction frameworks face quality criticism as users mature"]
+  },
+  {
+    "id": "vercel-2016",
+    "name": "Vercel",
+    "year": 2016,
+    "category": "cloud",
+    "pattern": "developer-cloud",
+    "keywords": ["vercel", "deployment", "serverless", "edge", "next.js", "frontend", "cdn"],
+    "trajectory": "ZEIT → Vercel rebrand → Next.js stewardship → developer cloud platform",
+    "lessons": ["Framework stewardship creates platform distribution advantages", "Developer experience as a product differentiator works in commoditized infrastructure"]
+  },
+  {
+    "id": "llama-2023",
+    "name": "LLaMA",
+    "year": 2023,
+    "category": "ai",
+    "pattern": "open-source-llm",
+    "keywords": ["llama", "meta", "open source", "llm", "weights", "language model", "fine-tuning"],
+    "trajectory": "Meta release → weights leak → community fine-tuning explosion → legitimized open LLM ecosystem",
+    "lessons": ["Open LLM weights catalyze more innovation than closed API access", "Leaked weights can accelerate adoption beyond intended distribution"]
+  }
+]

@@ -1,5 +1,6 @@
 import type { LLMGenerateParams, LLMGenerateResult } from '@influenceai/integrations';
 import techFixture from '../__fixtures__/tech-agent-response.json';
+import historyFixture from '../__fixtures__/history-agent-response.json';
 
 /**
  * Creates a mock LLMClient that routes generateJSON calls to fixture files
@@ -20,9 +21,11 @@ export function createMockLLMClient() {
 
       // Route to appropriate fixture based on prompt content.
       // As more agents are implemented, add routing branches here:
-      //   if (prompt.includes('history')) return historyFixture as T;
       //   if (prompt.includes('finance')) return financeFixture as T;
       //   if (prompt.includes('synthesis')) return synthesisFixture as T;
+      if (prompt.includes('histor')) {
+        return historyFixture as T;
+      }
       if (prompt.includes('tech') || prompt.includes('technical')) {
         return techFixture as T;
       }

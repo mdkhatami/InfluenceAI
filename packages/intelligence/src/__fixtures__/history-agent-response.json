@@ -1,0 +1,13 @@
+{
+  "hasParallel": true,
+  "findings": [
+    {
+      "type": "comparison",
+      "headline": "Docker adoption pattern (2014)",
+      "detail": "Docker saw rapid developer adoption followed by 6 months of enterprise resistance, then consolidation. This follows the same trajectory.",
+      "importance": "high"
+    }
+  ],
+  "hooks": ["History doesn't repeat, but it rhymes — and this rhymes with Docker 2014"],
+  "confidence": 0.7
+}
