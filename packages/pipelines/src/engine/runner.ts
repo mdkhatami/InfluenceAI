@@ -17,6 +17,7 @@ import {
 } from '@influenceai/database';
 import { LLMClient, buildPrompt } from '@influenceai/integrations';
 import { deduplicateSignals } from './dedup';
+import { scoreRelevance } from './relevance';
 import { getPillar } from '@influenceai/core';
 
 export async function runPipeline(definition: PipelineDefinition): Promise<PipelineRunResult> {
@@ -87,9 +88,50 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
       };
     }
 
+    // STEP 2.5: RELEVANCE SCORING
+    const threshold = definition.relevanceThreshold ?? 3;
+    const relevantSignals = scoreRelevance(newSignals, threshold);
+    const droppedCount = newSignals.length - relevantSignals.length;
+    if (droppedCount > 0) {
+      await logPipelineStep(
+        db,
+        runId,
+        'relevance',
+        'warn',
+        `Dropped ${droppedCount} signals below relevance threshold (${threshold})`,
+      );
+    }
+    await logPipelineStep(
+      db,
+      runId,
+      'relevance',
+      'info',
+      `${relevantSignals.length} signals passed relevance check (threshold: ${threshold})`,
+    );
+
+    if (relevantSignals.length === 0) {
+      await logPipelineStep(db, runId, 'relevance', 'info', 'No relevant signals — skipping generation');
+      await completePipelineRun(db, runId, {
+        status: 'completed',
+        signalsIngested,
+        signalsFiltered: 0,
+        itemsGenerated: 0,
+      });
+      return {
+        runId,
+        pipelineId: definition.id,
+        status: 'completed',
+        signalsIngested,
+        signalsFiltered: 0,
+        itemsGenerated: 0,
+        errors: [],
+        durationMs: Date.now() - startTime,
+      };
+    }
+
     // STEP 3: FILTER
     await logPipelineStep(db, runId, 'filter', 'info', 'Starting signal filtering');
-    const scoredSignals = await definition.filter(newSignals, {});
+    const scoredSignals = await definition.filter(relevantSignals, {});
     const topSignals = scoredSignals.slice(0, definition.generate.topK);
     signalsFiltered = topSignals.length;
     await logPipelineStep(db, runId, 'filter', 'info', `Filtered to top ${topSignals.length} signals`);
