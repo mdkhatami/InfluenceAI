@@ -13,6 +13,8 @@ const pipelineMap: Record<string, PipelineDefinition> = {
   'release-radar': releaseRadarPipeline,
 };
 
+export const maxDuration = 300;
+
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },

@@ -2,7 +2,7 @@ type EnvRequirement = {
   key: string;
   required: boolean;
   description: string;
-  category: 'supabase' | 'llm' | 'auth' | 'integrations' | 'trigger';
+  category: 'supabase' | 'llm' | 'auth' | 'integrations' | 'cron';
 };
 
 const ENV_REQUIREMENTS: EnvRequirement[] = [
@@ -62,18 +62,12 @@ const ENV_REQUIREMENTS: EnvRequirement[] = [
     category: 'integrations',
   },
 
-  // Trigger.dev
+  // Vercel Cron
   {
-    key: 'TRIGGER_SECRET_KEY',
+    key: 'CRON_SECRET',
     required: false,
-    description: 'Trigger.dev secret key for scheduled pipeline execution',
-    category: 'trigger',
-  },
-  {
-    key: 'TRIGGER_PROJECT_ID',
-    required: false,
-    description: 'Trigger.dev project ID',
-    category: 'trigger',
+    description: 'Secret for securing Vercel Cron endpoints',
+    category: 'cron',
   },
 ];
 
@@ -129,12 +123,10 @@ export function validateEnv(): EnvValidationResult {
     );
   }
 
-  // Special case: Trigger.dev vars should be set together
-  const triggerVars = ['TRIGGER_SECRET_KEY', 'TRIGGER_PROJECT_ID'];
-  const triggerSet = triggerVars.filter((k) => process.env[k] && process.env[k] !== '');
-  if (triggerSet.length === 1) {
+  // Special case: CRON_SECRET should be set for production cron jobs
+  if (!process.env.CRON_SECRET || process.env.CRON_SECRET === '') {
     warnings.push(
-      `Partial Trigger.dev configuration: ${triggerSet.join(', ')} set but ${triggerVars.filter((k) => !triggerSet.includes(k)).join(', ')} missing. Scheduled pipelines will not run.`,
+      'CRON_SECRET not set. Vercel Cron endpoints will reject all requests.',
     );
   }
 
