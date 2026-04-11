@@ -49,12 +49,22 @@ export async function updateContentStatus(
   client: SupabaseClient,
   itemId: string,
   status: ContentStatus,
-  extra?: { rejectionReason?: string; replacedById?: string; scheduledAt?: string },
+  extra?: {
+    rejectionReason?: string;
+    replacedById?: string;
+    scheduledAt?: string;
+    title?: string;
+    body?: string;
+    publishedAt?: string;
+  },
 ): Promise<void> {
   const update: Record<string, unknown> = { status };
   if (extra?.rejectionReason) update.rejection_reason = extra.rejectionReason;
   if (extra?.replacedById) update.replaced_by_id = extra.replacedById;
   if (extra?.scheduledAt) update.scheduled_at = extra.scheduledAt;
+  if (extra?.title !== undefined) update.title = extra.title;
+  if (extra?.body !== undefined) update.body = extra.body;
+  if (extra?.publishedAt) update.published_at = extra.publishedAt;
 
   const { error } = await client.from('content_items').update(update).eq('id', itemId);
   if (error) throw new Error(`Failed to update content item: ${error.message}`);

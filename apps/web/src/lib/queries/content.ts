@@ -120,3 +120,30 @@ export async function getContentItem(id: string) {
   if (error) throw error;
   return data;
 }
+
+export async function getAdjacentPendingItems(currentId: string): Promise<{
+  previousId: string | null;
+  nextId: string | null;
+}> {
+  const supabase = await createClient();
+
+  // Fetch all pending_review item IDs ordered by newest first (same order as review queue)
+  const { data } = await supabase
+    .from('content_items')
+    .select('id')
+    .eq('status', 'pending_review')
+    .order('created_at', { ascending: false });
+
+  const items = data ?? [];
+  const idx = items.findIndex((item) => item.id === currentId);
+
+  // If not found in pending list (e.g., already approved), return nulls
+  if (idx === -1) {
+    return { previousId: null, nextId: null };
+  }
+
+  return {
+    previousId: idx > 0 ? items[idx - 1].id : null,
+    nextId: idx < items.length - 1 ? items[idx + 1].id : null,
+  };
+}

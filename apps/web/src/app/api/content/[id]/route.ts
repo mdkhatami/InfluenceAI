@@ -37,6 +37,7 @@ export async function PUT(
     if (body.title !== undefined) update.title = body.title;
     if (body.scheduledAt !== undefined) update.scheduled_at = body.scheduledAt;
     if (body.rejectionReason !== undefined) update.rejection_reason = body.rejectionReason;
+    if (body.publishedAt !== undefined) update.published_at = body.publishedAt;
 
     const { data, error } = await supabase
       .from('content_items')
