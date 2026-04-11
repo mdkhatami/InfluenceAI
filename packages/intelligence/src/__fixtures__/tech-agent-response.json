@@ -1,0 +1,34 @@
+{
+  "findings": [
+    {
+      "type": "fact",
+      "headline": "Achieves 95% accuracy on MMLU",
+      "detail": "Model surpasses GPT-4 on standard benchmarks with 3x fewer parameters",
+      "importance": "high"
+    },
+    {
+      "type": "comparison",
+      "headline": "3x cheaper inference than GPT-4",
+      "detail": "At $0.50/1M tokens vs $2.50/1M for GPT-4",
+      "importance": "high"
+    },
+    {
+      "type": "fact",
+      "headline": "Apache 2.0 license",
+      "detail": "Fully open source, no usage restrictions",
+      "importance": "medium"
+    }
+  ],
+  "hooks": [
+    "The benchmark king just got dethroned — and by an open-source model",
+    "What happens when the cheapest option is also the best?"
+  ],
+  "sources": [
+    {
+      "title": "Model README",
+      "url": "https://github.com/test/repo",
+      "source": "github",
+      "accessedAt": "2026-04-11T00:00:00Z"
+    }
+  ]
+}
