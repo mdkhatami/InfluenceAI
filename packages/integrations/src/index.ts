@@ -1,7 +1,7 @@
 export * from './types';
 export { LLMClient } from './llm/client';
 export type { LLMGenerateParams, LLMGenerateResult } from './llm/client';
-export { buildPrompt, type PromptTemplateInput } from './llm/prompts';
+export { buildPrompt, PLATFORM_FORMATS, type PromptTemplateInput } from './llm/prompts';
 export {
   fetchTrendingRepos,
   scoreRepos,

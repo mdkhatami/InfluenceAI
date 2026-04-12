@@ -1,6 +1,6 @@
 import type { Signal, Platform } from '@influenceai/core';
 
-const PLATFORM_FORMATS: Record<string, string> = {
+export const PLATFORM_FORMATS: Record<string, string> = {
   linkedin: `Format: LinkedIn post.
 - Hook line: bold claim, never start with "I'm excited to share..."
 - 3-5 numbered insights, each a short paragraph
