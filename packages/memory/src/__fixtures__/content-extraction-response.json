@@ -1,0 +1,13 @@
+{
+  "entities": [
+    { "name": "OpenAI", "type": "company", "sentiment": "neutral" },
+    { "name": "GPT-5", "type": "technology", "sentiment": "positive" }
+  ],
+  "topics": ["large language models", "AI safety", "benchmarks"],
+  "predictions": [
+    { "statement": "GPT-5 will surpass human-level reasoning on most benchmarks", "timeframe": "2025", "confidence": "medium" }
+  ],
+  "stances": [
+    { "topic": "AI scaling", "position": "Bullish on continued scaling improvements" }
+  ]
+}
