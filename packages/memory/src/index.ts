@@ -4,3 +4,4 @@ export { findSimilarContent, findByEntity, findOpenPredictions, findStances, fin
 export { collectTrendData, fetchGitHubMetrics, fetchNpmDownloads, fetchPyPIDownloads, fetchHNMentions } from './trends/collector';
 export { analyzeTrends, selectPrimaryMetric, computeVelocity, computeAcceleration, detectPhase, computeContentSignal } from './trends/analyzer';
 export { discoverNewEntities } from './trends/analyzer';
+export { detectCollisions, findEntityOverlapCollisions, findTextOverlap, classifyCollisionType } from './collisions/detector';
