@@ -1,5 +1,5 @@
 import type { LLMClient } from '@influenceai/integrations';
-import type { VoiceProfile, VoiceAnalysis } from '../types';
+import type { VoiceProfile, VoiceAnalysis, Stance } from '../types';
 
 const VOICE_ANALYZER_SYSTEM_PROMPT = `You analyze before/after content edits to extract an author's writing style. Focus on:
 
@@ -83,7 +83,11 @@ Extract:
     openingPatterns: analysis.openingPatterns,
     ctaPatterns: analysis.ctaPatterns,
     toneDescriptor: analysis.toneDescriptor,
-    stances: analysis.stances,
+    stances: analysis.stances.map((s): Stance => ({
+      ...s,
+      confidence: 0.5, // Initial confidence for newly extracted stances
+      lastExpressed: new Date(),
+    })),
     exemplarPosts: (exemplars || []).map((e: any) => ({
       contentItemId: e.id,
       platform: e.platform,
@@ -137,7 +141,12 @@ export async function getCurrentVoiceProfile(db: any): Promise<VoiceProfile | nu
     openingPatterns: data.opening_patterns,
     ctaPatterns: data.cta_patterns,
     toneDescriptor: data.tone_descriptor,
-    stances: data.stances,
+    stances: (data.stances || []).map((s: any): Stance => ({
+      topic: s.topic,
+      position: s.position,
+      confidence: s.confidence ?? 0.5,
+      lastExpressed: s.lastExpressed ? new Date(s.lastExpressed) : new Date(data.updated_at),
+    })),
     exemplarPosts: data.exemplar_posts || [],
     isActive: data.is_active,
     updatedAt: new Date(data.updated_at),

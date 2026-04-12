@@ -44,7 +44,11 @@ export async function PUT(
         const newTitle = body.title ?? current.title;
         const newBody = body.body ?? current.body;
         if (current.title !== newTitle || current.body !== newBody) {
-          await trackEdit(supabase, id, current.title || '', current.body || '', newTitle || '', newBody || '');
+          try {
+            await trackEdit(supabase, id, current.title || '', current.body || '', newTitle || '', newBody || '');
+          } catch {
+            // Edit tracking is non-blocking — don't fail the content update
+          }
         }
       }
     }

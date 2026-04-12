@@ -12,7 +12,7 @@ function mockProfile(overrides: Partial<VoiceProfile> = {}): VoiceProfile {
     vocabularyPreferences: { preferred: ['leverage'], avoided: ['synergy'] },
     openingPatterns: ['Bold opener'], ctaPatterns: ['Question CTA'],
     toneDescriptor: 'Direct and analytical',
-    stances: [{ topic: 'AI hype', position: 'Skeptical' }],
+    stances: [{ topic: 'AI hype', position: 'Skeptical', confidence: 0.7, lastExpressed: new Date() }],
     exemplarPosts: [
       { contentItemId: '1', platform: 'linkedin', title: 'Post 1', body: 'Example body 1', qualityScore: 9, editDistance: 5 },
       { contentItemId: '2', platform: 'twitter', title: 'Post 2', body: 'Example body 2', qualityScore: 8, editDistance: 3 },

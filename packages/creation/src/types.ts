@@ -82,8 +82,11 @@ export interface ExtractedStance {
   position: string;
 }
 
-/** Alias for use in VoiceProfile */
-export type Stance = ExtractedStance;
+/** Full stance with confidence tracking (per master spec) */
+export interface Stance extends ExtractedStance {
+  confidence: number;
+  lastExpressed: Date;
+}
 
 export interface ExemplarPost {
   contentItemId: string;

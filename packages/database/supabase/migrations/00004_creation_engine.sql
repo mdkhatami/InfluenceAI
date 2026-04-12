@@ -57,6 +57,9 @@ CREATE TABLE voice_profiles (
 
 CREATE INDEX idx_voice_profiles_active ON voice_profiles(is_active) WHERE is_active = true;
 
+-- Enforce at most one active voice profile (prevents race condition in analyzer)
+CREATE UNIQUE INDEX idx_voice_profiles_single_active ON voice_profiles ((true)) WHERE is_active = true;
+
 -- RLS policies (matching existing pattern: auth.uid() IS NOT NULL)
 ALTER TABLE angle_cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_edits ENABLE ROW LEVEL SECURITY;

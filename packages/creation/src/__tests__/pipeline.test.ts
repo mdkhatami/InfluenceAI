@@ -37,8 +37,8 @@ function createMockLLM() {
 }
 
 function createMockDb() {
-  const insertFn = vi.fn().mockResolvedValue({});
-  const updateFn = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({}) });
+  const insertFn = vi.fn().mockResolvedValue({ error: null });
+  const updateFn = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 
   return {
     from: vi.fn().mockImplementation((table: string) => {

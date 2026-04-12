@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { LLMClient } from '@influenceai/integrations';
-import { createContent } from '@influenceai/creation';
-import type { ResearchBrief } from '@influenceai/creation';
+import { createDraftFromAngle, parseBriefFromRow } from '@influenceai/creation';
+import type { AngleCard, Finding } from '@influenceai/creation';
 
 export const maxDuration = 300;
 
@@ -27,45 +27,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Research brief not found' }, { status: 404 });
     }
 
-    // Reconstruct brief
-    const parsedBrief: ResearchBrief = {
-      id: brief.id,
-      signalId: brief.signal_id,
-      signal: brief.signal_data,
-      topFindings: brief.top_findings,
-      connections: brief.connections || [],
-      suggestedAngles: brief.suggested_angles || [],
-      unusualFact: brief.unusual_fact || '',
-      agentBriefs: [],
-      coverage: brief.coverage || { dispatched: 0, succeeded: 0, failed: 0, agents: [] },
-      createdAt: new Date(brief.created_at),
-      expiresAt: brief.expires_at ? new Date(brief.expires_at) : new Date(Date.now() + 48 * 60 * 60 * 1000),
+    // Fetch the previously stored angle card (no regeneration needed)
+    const { data: angleRow, error: angleError } = await supabase
+      .from('angle_cards')
+      .select('*')
+      .eq('id', angleCardId)
+      .single();
+
+    if (angleError || !angleRow) {
+      return NextResponse.json({ error: 'Angle card not found' }, { status: 404 });
+    }
+
+    const parsedBrief = parseBriefFromRow(brief);
+
+    const angle: AngleCard = {
+      id: angleRow.id,
+      researchBriefId: angleRow.research_brief_id,
+      angleType: angleRow.angle_type,
+      hook: angleRow.hook,
+      thesis: angleRow.thesis,
+      supportingFindings: (angleRow.supporting_findings || []) as Finding[],
+      domainSource: angleRow.domain_source,
+      estimatedEngagement: angleRow.estimated_engagement,
+      reasoning: angleRow.reasoning,
+      status: angleRow.status,
+      createdAt: new Date(angleRow.created_at),
     };
 
-    const result = await createContent(
-      parsedBrief, platform,
-      { selectedAngleId: angleCardId },
-      supabase, llm,
-    );
-
-    if (result.phase !== 'complete') {
-      return NextResponse.json({ error: 'Angle not found in generated cards' }, { status: 400 });
-    }
+    const { draft, storyArc } = await createDraftFromAngle(parsedBrief, angle, platform, supabase, llm);
 
     // Store as content item
     const { data: contentItem, error: insertError } = await supabase
       .from('content_items')
       .insert({
-        title: result.draft.title,
-        body: result.draft.body,
+        title: draft.title,
+        body: draft.body,
         platform,
         status: 'pending_review',
-        quality_score: result.draft.qualityScore,
+        quality_score: draft.qualityScore,
         metadata: {
-          angleType: result.selectedAngle.angleType,
-          storyArc: result.storyArc.id,
+          angleType: angle.angleType,
+          storyArc: storyArc.id,
           researchBriefId: brief.id,
-          angleCardId: result.selectedAngle.id,
+          angleCardId: angle.id,
         },
       })
       .select()
@@ -76,8 +80,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      draft: result.draft,
-      storyArc: { id: result.storyArc.id, name: result.storyArc.name },
+      draft,
+      storyArc: { id: storyArc.id, name: storyArc.name },
       contentItemId: contentItem.id,
     });
   } catch {

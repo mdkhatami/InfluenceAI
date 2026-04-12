@@ -13,5 +13,8 @@ export { trackEdit, calculateEditDistance } from './voice/tracker';
 export { analyzeVoice, getCurrentVoiceProfile } from './voice/analyzer';
 export { buildVoiceInjection } from './voice/injector';
 
+// Helpers
+export { parseBriefFromRow } from './helpers';
+
 // Pipeline
-export { createContent } from './pipeline';
+export { createContent, createDraftFromAngle } from './pipeline';

@@ -15,14 +15,13 @@ export async function createContent(
 ): Promise<CreationResult> {
   // 1. Generate angle cards
   const angleCards = await generateAngles(brief, platform, llm);
-  await storeAngleCards(db, angleCards);
+  await storeAngleCards(db, angleCards, brief.signalId);
 
   // 2. Select angle (user-chosen or auto)
   let selectedAngle: AngleCard;
   if (options.selectedAngleId) {
     const found = angleCards.find(a => a.id === options.selectedAngleId);
     if (!found) {
-      // Fallback to auto-select if provided ID not found
       selectedAngle = autoSelectAngle(angleCards, platform);
     } else {
       selectedAngle = found;
@@ -30,7 +29,6 @@ export async function createContent(
   } else if (options.autoSelect) {
     selectedAngle = autoSelectAngle(angleCards, platform);
   } else {
-    // Return angle cards only — wait for user selection (interactive mode)
     return { phase: 'angles_only', angleCards };
   }
 
@@ -48,11 +46,30 @@ export async function createContent(
   return { phase: 'complete', angleCards, selectedAngle, storyArc, draft };
 }
 
-async function storeAngleCards(db: any, angleCards: AngleCard[]): Promise<void> {
-  await db.from('angle_cards').insert(
+/**
+ * Generate a draft from a previously stored angle card (no angle regeneration).
+ * Used by the draft API endpoint when the user has already selected an angle.
+ */
+export async function createDraftFromAngle(
+  brief: ResearchBrief,
+  angle: AngleCard,
+  platform: Platform,
+  db: any, // SupabaseClient
+  llm: LLMClient,
+): Promise<{ draft: import('./types').Draft; storyArc: import('./types').StoryArc }> {
+  await updateAngleStatus(db, angle.id, 'selected');
+  const storyArc = selectArc(angle, platform);
+  const voiceProfile = await getCurrentVoiceProfile(db);
+  const draft = await generateDraft(brief, angle, storyArc, platform, voiceProfile, llm);
+  return { draft, storyArc };
+}
+
+async function storeAngleCards(db: any, angleCards: AngleCard[], signalId?: string): Promise<void> {
+  const { error } = await db.from('angle_cards').insert(
     angleCards.map(a => ({
       id: a.id,
       research_brief_id: a.researchBriefId,
+      signal_id: signalId || null,
       angle_type: a.angleType,
       hook: a.hook,
       thesis: a.thesis,
@@ -63,8 +80,10 @@ async function storeAngleCards(db: any, angleCards: AngleCard[]): Promise<void> 
       status: a.status,
     })),
   );
+  if (error) throw new Error(`Failed to store angle cards: ${error.message}`);
 }
 
 async function updateAngleStatus(db: any, angleId: string, status: string): Promise<void> {
-  await db.from('angle_cards').update({ status }).eq('id', angleId);
+  const { error } = await db.from('angle_cards').update({ status }).eq('id', angleId);
+  if (error) throw new Error(`Failed to update angle status: ${error.message}`);
 }
