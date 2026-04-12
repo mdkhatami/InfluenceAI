@@ -62,17 +62,18 @@ export async function GET(request: Request) {
     }
 
     // STEP 5: Detect callbacks (prediction resolutions)
+    let detectedCallbacks: Awaited<ReturnType<typeof detectCallbacks>> = [];
     try {
-      const callbacks = await detectCallbacks(db, llm);
-      results.steps.push({ name: 'callbacks', count: callbacks.length });
+      detectedCallbacks = await detectCallbacks(db, llm);
+      results.steps.push({ name: 'callbacks', count: detectedCallbacks.length });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       results.steps.push({ name: 'callbacks', status: 'failed', error: message });
     }
 
-    // STEP 6: Assemble daily menu
+    // STEP 6: Assemble daily menu (with callbacks from step 5)
     try {
-      const menu = await assembleDailyMenu(db);
+      const menu = await assembleDailyMenu(db, detectedCallbacks);
       results.steps.push({ name: 'menu', items: menu.items.length });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

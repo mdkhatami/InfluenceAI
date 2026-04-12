@@ -54,7 +54,7 @@ export function calculatePriority(item: DailyMenuItem): number {
 // Assemble daily menu
 // ---------------------------------------------------------------------------
 
-export async function assembleDailyMenu(db: any): Promise<DailyMenu> {
+export async function assembleDailyMenu(db: any, callbacks: CallbackItem[] = []): Promise<DailyMenu> {
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch all inputs in parallel
@@ -182,6 +182,22 @@ export async function assembleDailyMenu(db: any): Promise<DailyMenu> {
     });
   });
 
+  // Callbacks (prediction resolutions)
+  callbacks.forEach((cb) => {
+    items.push({
+      id: crypto.randomUUID(),
+      priority: 0,
+      readiness: 'callback',
+      type: 'prediction_check',
+      title: `Prediction resolved: ${cb.prediction.statement}`,
+      reason: `${cb.resolution}: ${cb.evidence}`,
+      predictionId: cb.contentItemId,
+      estimatedEffort: '2 min',
+      platforms: ['linkedin'],
+      pillar: '',
+    });
+  });
+
   // Calculate priorities and sort
   items.forEach((item) => {
     item.priority = calculatePriority(item);
@@ -205,17 +221,20 @@ export async function assembleDailyMenu(db: any): Promise<DailyMenu> {
     stats,
   };
 
-  // Upsert menu (one per day)
-  await db.from('daily_menus').upsert(
+  // Upsert menu (one per day) — omit id, let Postgres generate it
+  const { data: upserted } = await db.from('daily_menus').upsert(
     {
-      id: menu.id,
       menu_date: today,
       generated_at: menu.generatedAt.toISOString(),
       items: menu.items,
       stats: menu.stats,
     },
     { onConflict: 'menu_date' },
-  );
+  ).select('id').single();
+
+  if (upserted) {
+    menu.id = upserted.id;
+  }
 
   return menu;
 }

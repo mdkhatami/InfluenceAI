@@ -16,4 +16,4 @@ CREATE INDEX idx_daily_menus_date ON daily_menus(menu_date DESC);
 -- RLS (matching existing pattern)
 ALTER TABLE daily_menus ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Authenticated users can manage daily_menus"
-  ON daily_menus FOR ALL USING (auth.uid() IS NOT NULL);
+  ON daily_menus FOR ALL TO authenticated USING (true);

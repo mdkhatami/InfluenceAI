@@ -7,6 +7,11 @@ export const maxDuration = 300;
 export async function GET() {
   try {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const today = new Date().toISOString().split('T')[0];
 
     const { data, error } = await supabase
@@ -36,6 +41,11 @@ export async function GET() {
 export async function POST() {
   try {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const menu = await assembleDailyMenu(supabase);
     return NextResponse.json({ menu });
   } catch (error) {
