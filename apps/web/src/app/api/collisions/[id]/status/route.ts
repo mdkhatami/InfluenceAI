@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export const maxDuration = 300;
 
-export async function PUT(
+export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {

@@ -106,7 +106,8 @@ export function detectPhase(
   if (velocity > 0 && acceleration > 0) return 'accelerating';
   if (velocity > 0 && acceleration <= 0) return 'peak';
   if (velocity < 0 && acceleration < 0) return 'decelerating';
-  if (Math.abs(velocity) < 2) return 'plateau'; // < 2% weekly change
+  // velocity is already a percentage (from computeVelocity), so < 2 means < 2% weekly change
+  if (Math.abs(velocity) < 2) return 'plateau';
   if (velocity < 0) return 'declining';
   return 'emerging';
 }
@@ -183,7 +184,7 @@ export async function analyzeTrends(db: any): Promise<TrendAnalysis[]> {
     };
 
     // Upsert (one analysis per entity)
-    await db.from('trend_analyses').upsert(
+    const { error: upsertError } = await db.from('trend_analyses').upsert(
       {
         entity_id: entity.id,
         phase: analysis.phase,
@@ -196,6 +197,11 @@ export async function analyzeTrends(db: any): Promise<TrendAnalysis[]> {
       },
       { onConflict: 'entity_id' },
     );
+
+    if (upsertError) {
+      console.error(`Failed to upsert analysis for ${entity.name}: ${upsertError.message}`);
+      continue;
+    }
 
     analyses.push(analysis);
   }

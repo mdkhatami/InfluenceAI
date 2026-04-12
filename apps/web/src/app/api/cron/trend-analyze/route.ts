@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getServiceClient } from '@influenceai/database';
 import { LLMClient } from '@influenceai/integrations';
 import { analyzeTrends, discoverNewEntities } from '@influenceai/memory';
 import { verifyCronAuth } from '../_lib/auth';
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = getServiceClient();
     const llm = LLMClient.fromEnv();
 
     const analyses = await analyzeTrends(supabase);
