@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { trackEdit } from '@influenceai/creation';
 
 export async function GET(
   request: Request,
@@ -30,6 +31,23 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const supabase = await createClient();
+
+    // Track edit if content changed
+    if (body.title !== undefined || body.body !== undefined) {
+      const { data: current } = await supabase
+        .from('content_items')
+        .select('title, body')
+        .eq('id', id)
+        .single();
+
+      if (current) {
+        const newTitle = body.title ?? current.title;
+        const newBody = body.body ?? current.body;
+        if (current.title !== newTitle || current.body !== newBody) {
+          await trackEdit(supabase, id, current.title || '', current.body || '', newTitle || '', newBody || '');
+        }
+      }
+    }
 
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (body.status) update.status = body.status;

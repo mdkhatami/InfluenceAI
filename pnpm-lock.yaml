@@ -29,6 +29,9 @@ importers:
       '@influenceai/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@influenceai/creation':
+        specifier: workspace:*
+        version: link:../../packages/creation
       '@influenceai/database':
         specifier: workspace:*
         version: link:../../packages/database
