@@ -5,6 +5,7 @@ import { getContentItems } from '@/lib/queries/content';
 import { ContentCard } from '@/components/dashboard/content-card';
 import { Badge } from '@/components/ui/badge';
 import { Inbox } from 'lucide-react';
+import { DailyMenuContainer } from '@/components/dashboard/daily-menu/menu-container';
 
 const PIPELINE_OPTIONS = [
   { value: '', label: 'All Pipelines' },
@@ -68,6 +69,12 @@ export default async function ReviewPage({
 
   return (
     <div className="space-y-6">
+      {/* Daily Menu */}
+      <DailyMenuContainer />
+
+      {/* Divider */}
+      <div className="border-t border-zinc-800" />
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <div>
