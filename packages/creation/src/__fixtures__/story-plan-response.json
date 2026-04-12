@@ -1,0 +1,8 @@
+{
+  "beats": [
+    { "beatName": "hook", "content": "Open with the claim that everyone is celebrating prematurely", "findings": "Finding A: benchmark analysis" },
+    { "beatName": "investigation", "content": "Walk through the three hidden limitations in the benchmark methodology", "findings": "Finding A, Finding B" },
+    { "beatName": "reveal", "content": "The model actually performs 40% worse on real-world tasks vs benchmarks", "findings": "Finding A" },
+    { "beatName": "implication", "content": "Teams building on this model need to run their own evaluations before committing", "findings": "Finding B" }
+  ]
+}
