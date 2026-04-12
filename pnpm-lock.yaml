@@ -142,6 +142,31 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/creation:
+    dependencies:
+      '@influenceai/core':
+        specifier: workspace:*
+        version: link:../core
+      '@influenceai/database':
+        specifier: workspace:*
+        version: link:../database
+      '@influenceai/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+      '@influenceai/intelligence':
+        specifier: workspace:*
+        version: link:../intelligence
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(tsx@4.21.0)
+
   packages/database:
     dependencies:
       '@influenceai/core':
