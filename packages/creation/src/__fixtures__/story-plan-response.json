@@ -1,8 +1,24 @@
 {
   "beats": [
-    { "beatName": "hook", "content": "Open with the claim that everyone is celebrating prematurely", "findings": "Finding A: benchmark analysis" },
-    { "beatName": "investigation", "content": "Walk through the three hidden limitations in the benchmark methodology", "findings": "Finding A, Finding B" },
-    { "beatName": "reveal", "content": "The model actually performs 40% worse on real-world tasks vs benchmarks", "findings": "Finding A" },
-    { "beatName": "implication", "content": "Teams building on this model need to run their own evaluations before committing", "findings": "Finding B" }
+    {
+      "beatName": "hook",
+      "content": "Open with the contrarian observation about the repo's star count hiding a deeper issue",
+      "findings": "Finding A (high importance)"
+    },
+    {
+      "beatName": "investigation",
+      "content": "Walk through the architectural analysis step by step",
+      "findings": "Findings A and C"
+    },
+    {
+      "beatName": "reveal",
+      "content": "The scaling ceiling that nobody is talking about",
+      "findings": "Finding C"
+    },
+    {
+      "beatName": "implication",
+      "content": "What this means for teams currently adopting",
+      "findings": "All findings"
+    }
   ]
 }
