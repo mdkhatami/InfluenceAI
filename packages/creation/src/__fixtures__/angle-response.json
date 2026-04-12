@@ -1,0 +1,9 @@
+{
+  "angles": [
+    { "type": "contrarian", "hook": "Everyone's celebrating this launch. Here's why they shouldn't be.", "thesis": "The benchmarks hide a critical limitation.", "findingRefs": [0, 2], "primaryDomain": "tech", "engagement": "high", "reasoning": "Contrarian takes on popular news perform well" },
+    { "type": "historical_parallel", "hook": "This happened before. In 2014, with Docker.", "thesis": "The adoption curve mirrors Docker's — and we know how that ended.", "findingRefs": [1], "primaryDomain": "history", "engagement": "high", "reasoning": "History parallels are shareable" },
+    { "type": "practical", "hook": "I tested this for 3 hours. Here's what actually works.", "thesis": "The framework excels at X but fails at Y.", "findingRefs": [0], "primaryDomain": "tech", "engagement": "medium", "reasoning": "Practical testing content is evergreen" },
+    { "type": "prediction", "hook": "This model will be irrelevant in 6 months. Here's why.", "thesis": "The open-source velocity will commoditize this within two release cycles.", "findingRefs": [0, 1], "primaryDomain": "deveco", "engagement": "medium", "reasoning": "Bold predictions drive debate" },
+    { "type": "career_impact", "hook": "If you're an ML engineer, this changes your job tomorrow.", "thesis": "The skill requirements for ML engineers just shifted dramatically.", "findingRefs": [0], "primaryDomain": "industry", "engagement": "medium", "reasoning": "Career content resonates on LinkedIn" }
+  ]
+}
