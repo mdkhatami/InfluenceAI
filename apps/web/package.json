@@ -16,6 +16,7 @@
     "@influenceai/database": "workspace:*",
     "@influenceai/integrations": "workspace:*",
     "@influenceai/intelligence": "workspace:*",
+    "@influenceai/memory": "workspace:*",
     "@influenceai/pipelines": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",

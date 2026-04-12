@@ -41,6 +41,9 @@ importers:
       '@influenceai/intelligence':
         specifier: workspace:*
         version: link:../../packages/intelligence
+      '@influenceai/memory':
+        specifier: workspace:*
+        version: link:../../packages/memory
       '@influenceai/pipelines':
         specifier: workspace:*
         version: link:../../packages/pipelines
@@ -209,6 +212,28 @@ importers:
         version: 5.9.3
 
   packages/intelligence:
+    dependencies:
+      '@influenceai/core':
+        specifier: workspace:*
+        version: link:../core
+      '@influenceai/database':
+        specifier: workspace:*
+        version: link:../database
+      '@influenceai/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+    devDependencies:
+      msw:
+        specifier: ^2.7.0
+        version: 2.12.14(@types/node@22.19.15)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(tsx@4.21.0)
+
+  packages/memory:
     dependencies:
       '@influenceai/core':
         specifier: workspace:*
