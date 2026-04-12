@@ -1,0 +1,18 @@
+{
+  "styleRules": [
+    { "rule": "Use short, punchy sentences for emphasis", "evidence": "5 of 8 edits shortened sentences", "strength": 0.8 },
+    { "rule": "Replace passive voice with active", "evidence": "4 edits changed passive to active", "strength": 0.7 },
+    { "rule": "Add specific numbers and data", "evidence": "3 edits added metrics", "strength": 0.6 }
+  ],
+  "vocabularyPreferences": {
+    "preferred": ["leverage", "critical", "specifically", "here's the thing"],
+    "avoided": ["synergy", "game-changer", "paradigm shift", "excited to share"]
+  },
+  "openingPatterns": ["Bold claim opener", "Question that challenges assumption", "Specific number hook"],
+  "ctaPatterns": ["Provocative question", "Challenge to take action", "Ask for disagreement"],
+  "toneDescriptor": "Direct, analytical, occasionally irreverent",
+  "stances": [
+    { "topic": "AI hype", "position": "Skeptical of benchmark claims, demands real-world evidence" },
+    { "topic": "Open source", "position": "Strong advocate, believes openness accelerates innovation" }
+  ]
+}
