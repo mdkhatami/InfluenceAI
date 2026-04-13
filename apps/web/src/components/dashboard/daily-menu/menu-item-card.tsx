@@ -37,6 +37,7 @@ const readinessConfig: Record<
 };
 
 export function MenuItemCard({ item }: { item: DailyMenuItem }) {
+  const router = useRouter();
   const config = readinessConfig[item.readiness] || readinessConfig.ready_to_post;
 
   // Special rendering for pick_an_angle items
@@ -62,8 +63,26 @@ export function MenuItemCard({ item }: { item: DailyMenuItem }) {
 
           {item.angleCards && item.angleCards.length > 0 && (
             <AnglePicker
-              briefId={item.researchBriefId || ''}
               angles={item.angleCards}
+              onSelect={async (angleId) => {
+                try {
+                  const res = await fetch('/api/creation/draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      researchBriefId: item.researchBriefId,
+                      angleCardId: angleId,
+                    }),
+                  });
+
+                  const result = await res.json();
+                  if (result.contentItemId) {
+                    router.push('/review');
+                  }
+                } catch (err) {
+                  console.error('Failed to generate draft:', err);
+                }
+              }}
             />
           )}
         </div>

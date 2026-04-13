@@ -15,12 +15,11 @@ interface AngleCard {
 }
 
 interface AnglePickerProps {
-  briefId: string;
   angles: AngleCard[];
   onSelect?: (angleId: string) => void;
 }
 
-export function AnglePicker({ briefId, angles, onSelect }: AnglePickerProps) {
+export function AnglePicker({ angles, onSelect }: AnglePickerProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
