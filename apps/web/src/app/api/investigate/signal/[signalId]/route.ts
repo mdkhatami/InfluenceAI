@@ -21,9 +21,13 @@ export async function POST(
 
   // Check if already investigated
   const { data: existing } = await supabase
-    .from('research_briefs').select('id').eq('signal_id', signalId).single();
+    .from('research_briefs').select('id, investigation_run_id').eq('signal_id', signalId).single();
   if (existing) {
-    return NextResponse.json({ researchBriefId: existing.id, status: 'already_investigated' });
+    return NextResponse.json({
+      researchBriefId: existing.id,
+      runId: existing.investigation_run_id,
+      status: 'already_investigated'
+    });
   }
 
   // Dispatch swarm — use signal.id (UUID from DB) not signal.external_id (Fix 2)
@@ -44,8 +48,13 @@ export async function POST(
     supabase, llm,
   );
 
+  // Fetch the investigation_run_id from the stored research_brief
+  const { data: storedBrief } = await supabase
+    .from('research_briefs').select('investigation_run_id').eq('id', brief.id).single();
+
   return NextResponse.json({
     researchBriefId: brief.id,
+    runId: storedBrief?.investigation_run_id || null,
     status: brief.coverage.failed > 0 ? 'partial' : 'completed',
     coverage: brief.coverage,
   });

@@ -3,27 +3,21 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { InvestigationProgress } from '@/components/dashboard/investigation/investigation-progress';
 
 type InvestigationResult = {
   researchBriefId: string;
+  runId: string | null;
   status: string;
   coverage: { dispatched: number; succeeded: number; failed: number };
   angleCards?: Array<Record<string, unknown>>;
-};
-
-const AGENT_LABELS: Record<string, string> = {
-  tech: 'Tech Deep-Dive',
-  finance: 'Finance',
-  geopolitics: 'Geopolitics',
-  industry: 'Industry Impact',
-  deveco: 'Dev Ecosystem',
-  history: 'Historical Pattern',
 };
 
 export default function InvestigatePage() {
   const params = useParams<{ signalId: string }>();
   const router = useRouter();
   const [investigating, setInvestigating] = useState(false);
+  const [runId, setRunId] = useState<string | null>(null);
   const [result, setResult] = useState<InvestigationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +33,7 @@ export default function InvestigatePage() {
         setError(data.error || 'Investigation failed');
         return;
       }
+      setRunId(data.runId);
       setResult(data);
     } catch {
       setError('Failed to start investigation');
@@ -65,20 +60,8 @@ export default function InvestigatePage() {
         </div>
       )}
 
-      {investigating && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-          <p className="text-sm text-zinc-400 mb-4">
-            Investigating signal across multiple domains...
-          </p>
-          <div className="space-y-2">
-            {Object.entries(AGENT_LABELS).map(([id, label]) => (
-              <div key={id} className="flex items-center gap-3 text-sm">
-                <div className="h-4 w-4 rounded-full bg-violet-500 animate-pulse" />
-                <span className="text-zinc-300">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {runId && (
+        <InvestigationProgress runId={runId} />
       )}
 
       {error && (

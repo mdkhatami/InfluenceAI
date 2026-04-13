@@ -26,7 +26,7 @@ export async function GET(
     startedAt: run.started_at,
     completedAt: run.completed_at,
     agents: (briefs || []).map(b => ({
-      agentId: b.agent_id,
+      agent_id: b.agent_id,
       status: b.status,
       confidence: b.confidence,
     })),
