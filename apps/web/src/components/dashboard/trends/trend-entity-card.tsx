@@ -1,6 +1,3 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
 import { PhaseBadge } from './phase-badge';
 import { SignalBadge } from './signal-badge';
 
@@ -34,12 +31,6 @@ export function TrendEntityCard({ trend }: TrendEntityCardProps) {
               </span>
             )}
           </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Button variant="outline" size="sm" className="text-xs">
-            View Detail
-          </Button>
         </div>
       </div>
     </div>

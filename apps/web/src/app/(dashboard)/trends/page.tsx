@@ -7,8 +7,9 @@ import { TrendingUp } from 'lucide-react';
 export default async function TrendsPage() {
   const supabase = await createClient();
 
+  // Note: trend_analyses has UNIQUE(entity_id) so at most one row per entity
   // Fetch trend entities with their latest analyses
-  const { data: entities } = await supabase
+  const { data: entities, error } = await supabase
     .from('trend_entities')
     .select(`
       id,
@@ -24,6 +25,10 @@ export default async function TrendsPage() {
     `)
     .eq('is_active', true)
     .order('name');
+
+  if (error) {
+    console.error('Failed to fetch trend entities:', error.message);
+  }
 
   const trends = entities?.map((entity) => ({
     id: entity.id,
