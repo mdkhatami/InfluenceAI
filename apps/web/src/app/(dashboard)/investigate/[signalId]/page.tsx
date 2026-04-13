@@ -4,6 +4,31 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { InvestigationProgress } from '@/components/dashboard/investigation/investigation-progress';
+import { ResearchBriefView } from '@/components/dashboard/investigation/research-brief-view';
+
+type Finding = {
+  type: string;
+  headline: string;
+  detail: string;
+  importance: string;
+};
+
+type Connection = {
+  relationship: string;
+  narrative_hook: string;
+};
+
+type ResearchBrief = {
+  top_findings: Finding[];
+  connections?: Connection[];
+  unusual_fact?: string;
+  suggested_angles?: string[];
+  coverage: {
+    dispatched: number;
+    succeeded: number;
+    failed: number;
+  };
+};
 
 type InvestigationResult = {
   researchBriefId: string;
@@ -19,7 +44,19 @@ export default function InvestigatePage() {
   const [investigating, setInvestigating] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
   const [result, setResult] = useState<InvestigationResult | null>(null);
+  const [brief, setBrief] = useState<ResearchBrief | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchBrief = async (briefId: string) => {
+    try {
+      const res = await fetch(`/api/investigate/brief/${briefId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setBrief(data);
+    } catch {
+      // Silently fail - brief is optional
+    }
+  };
 
   const startInvestigation = async () => {
     setInvestigating(true);
@@ -35,6 +72,10 @@ export default function InvestigatePage() {
       }
       setRunId(data.runId);
       setResult(data);
+      // Fetch the brief after investigation completes
+      if (data.researchBriefId) {
+        await fetchBrief(data.researchBriefId);
+      }
     } catch {
       setError('Failed to start investigation');
     } finally {
@@ -61,7 +102,14 @@ export default function InvestigatePage() {
       )}
 
       {runId && (
-        <InvestigationProgress runId={runId} />
+        <InvestigationProgress
+          runId={runId}
+          onComplete={() => {
+            if (result?.researchBriefId) {
+              fetchBrief(result.researchBriefId);
+            }
+          }}
+        />
       )}
 
       {error && (
@@ -97,6 +145,10 @@ export default function InvestigatePage() {
                 Back to Menu
               </Button>
             </div>
+          )}
+
+          {brief && (
+            <ResearchBriefView brief={brief} />
           )}
 
           <Button onClick={() => router.push('/')}>
