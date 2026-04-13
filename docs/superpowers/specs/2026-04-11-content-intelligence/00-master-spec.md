@@ -215,13 +215,14 @@ interface VoiceProfile {
   id: string;
   version: number;
   confidence: number;
+  editsAnalyzed: number;          // Fix 3: total edits processed by analyzer
   styleRules: StyleRule[];
   vocabularyPreferences: { preferred: string[]; avoided: string[] };
   openingPatterns: string[];
   ctaPatterns: string[];
   toneDescriptor: string;
   stances: Stance[];
-  exemplarPosts: ExemplarPost[];
+  exemplarPosts: ExemplarPost[];  // Fix 3: stored as JSONB, not UUID[]
   updatedAt: Date;
 }
 
@@ -231,9 +232,13 @@ interface StyleRule {
   strength: number;
 }
 
-interface Stance {
+// Fix 14: Split into ExtractedStance (from content memory) and Stance (in voice profile)
+interface ExtractedStance {
   topic: string;
   position: string;
+}
+
+interface Stance extends ExtractedStance {
   confidence: number;
   lastExpressed: Date;
 }
@@ -355,6 +360,27 @@ interface DailyMenuItem {
   platforms: Platform[];
   pillar: string;
 }
+
+// Fix 18: CallbackItem type (used in Phase 4 overnight batch + menu assembly)
+interface CallbackItem {
+  type: 'callback';
+  prediction: { contentItemId: string; prediction: Prediction };
+  resolution: 'correct' | 'wrong' | 'partial';
+  evidence: string;
+}
+
+// Fix 16: Discriminated union for createContent() return (replaces null! return)
+type CreationResult =
+  | { phase: 'angles_only'; angleCards: AngleCard[] }
+  | { phase: 'complete'; angleCards: AngleCard[]; selectedAngle: AngleCard; storyArc: StoryArc; draft: Draft };
+
+interface Draft {
+  title: string;
+  body: string;
+  qualityScore: number;
+  model: string;
+  usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+}
 ```
 
 ---
@@ -369,6 +395,14 @@ interface DailyMenuItem {
 | 4 | `04-daily-menu.md` | Morning menu UI + Interactive investigate mode + overnight batch | Phases 1-3 |
 
 **Each phase is independently shippable.** After Phase 1 alone, the system already produces dramatically better content than today. Each subsequent phase adds a new capability.
+
+### Cross-Cutting Specs
+
+| Spec | Purpose |
+|------|---------|
+| `05-errata-and-fixes.md` | 6 blocking + 20 high-priority corrections to Phase 1-4 specs (must be applied during implementation) |
+| `06-ui-comprehensive.md` | Full UI specification: 7 page designs, 30 new components, navigation updates, design standards |
+| `07-cost-and-testing.md` | LLM cost model (~$29/month), duration estimates, 154-test e2e strategy with mock infrastructure |
 
 ---
 
@@ -422,8 +456,7 @@ packages/
 - `collisions` — detected cross-domain connections
 
 ### Phase 4: Daily Menu
-- `daily_menus` — generated menu per day
-- `daily_menu_items` — individual menu entries with priority
+- `daily_menus` — generated menu per day (items stored as JSONB array, Fix 5)
 
 ---
 
@@ -436,6 +469,8 @@ packages/
 | `REDDIT_CLIENT_ID` | 1 | DevEco Agent — Reddit sentiment |
 | `REDDIT_CLIENT_SECRET` | 1 | DevEco Agent — Reddit sentiment |
 | `EMBEDDING_MODEL` | 3 | Content Memory — embedding model (default: text-embedding-3-small) |
+| `ALPHA_VANTAGE_API_KEY` | 1 | Finance Agent — stock data fallback (optional, Fix 17) |
+| `PRODUCTHUNT_TOKEN` | 1 | Industry Agent — ProductHunt data (optional, Fix 24) |
 
 All other data sources (GitHub, HN, RSS, ArXiv, npm, PyPI, SEC EDGAR) are free/public APIs using existing `GITHUB_TOKEN` or no auth.
 
