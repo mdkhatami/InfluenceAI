@@ -13,12 +13,16 @@ import {
   Sparkles,
   User,
   LogOut,
+  Inbox,
+  TrendingUp,
 } from 'lucide-react';
 
 const navItems = [
-  { label: 'Review', icon: ClipboardCheck, href: '/' },
+  { label: "Today's Menu", icon: ClipboardCheck, href: '/' },
+  { label: 'Signals', icon: Inbox, href: '/signals' },
   { label: 'Content', icon: FileText, href: '/content' },
   { label: 'Pipelines', icon: Workflow, href: '/pipelines' },
+  { label: 'Trends', icon: TrendingUp, href: '/trends' },
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
