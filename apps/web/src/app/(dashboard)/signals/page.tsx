@@ -2,11 +2,15 @@ export const dynamic = 'force-dynamic';
 
 import { createClient } from '@/lib/supabase/server';
 import { SignalCard } from '@/components/dashboard/signals/signal-card';
+import { SignalFilters } from '@/components/dashboard/signals/signal-filters';
+import { SignalPagination } from '@/components/dashboard/signals/signal-pagination';
 import { Inbox } from 'lucide-react';
 
 interface SearchParams {
   source?: string;
   minScore?: string;
+  timeRange?: string;
+  page?: string;
 }
 
 export default async function SignalsPage({
@@ -16,6 +20,11 @@ export default async function SignalsPage({
 }) {
   const params = await searchParams;
   const supabase = await createClient();
+
+  // Pagination
+  const page = parseInt(params.page || '1', 10);
+  const pageSize = 20; // Per spec
+  const offset = (page - 1) * pageSize;
 
   // Build query
   let query = supabase
@@ -32,9 +41,9 @@ export default async function SignalsPage({
       ingested_at
     `,
     )
-    .order('ingested_at', { ascending: false })
-    .limit(50);
+    .order('ingested_at', { ascending: false });
 
+  // Apply filters
   if (params.source) {
     query = query.eq('source_type', params.source);
   }
@@ -43,7 +52,65 @@ export default async function SignalsPage({
     query = query.gte('scored_relevance', parseFloat(params.minScore));
   }
 
+  // Time range filter
+  if (params.timeRange && params.timeRange !== 'all') {
+    const now = new Date();
+    let cutoff: Date;
+    switch (params.timeRange) {
+      case '24h':
+        cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        cutoff = new Date(0); // All time
+    }
+    query = query.gte('ingested_at', cutoff.toISOString());
+  }
+
+  // Apply pagination
+  query = query.range(offset, offset + pageSize - 1);
+
   const { data: signals } = await query;
+
+  // Get total count for pagination
+  let countQuery = supabase
+    .from('content_signals')
+    .select('*', { count: 'exact', head: true });
+
+  if (params.source) {
+    countQuery = countQuery.eq('source_type', params.source);
+  }
+
+  if (params.minScore) {
+    countQuery = countQuery.gte('scored_relevance', parseFloat(params.minScore));
+  }
+
+  if (params.timeRange && params.timeRange !== 'all') {
+    const now = new Date();
+    let cutoff: Date;
+    switch (params.timeRange) {
+      case '24h':
+        cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        cutoff = new Date(0);
+    }
+    countQuery = countQuery.gte('ingested_at', cutoff.toISOString());
+  }
+
+  const { count } = await countQuery;
+  const totalPages = Math.ceil((count || 0) / pageSize);
 
   // Check which signals have research briefs
   const signalsWithBriefs = signals
@@ -69,28 +136,7 @@ export default async function SignalsPage({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <select
-          className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300"
-          defaultValue={params.source || ''}
-        >
-          <option value="">All Sources</option>
-          <option value="github">GitHub</option>
-          <option value="rss">RSS</option>
-          <option value="hackernews">HackerNews</option>
-          <option value="arxiv">ArXiv</option>
-        </select>
-
-        <select
-          className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300"
-          defaultValue={params.minScore || '0'}
-        >
-          <option value="0">All Scores</option>
-          <option value="3">3+</option>
-          <option value="5">5+</option>
-          <option value="7">7+</option>
-        </select>
-      </div>
+      <SignalFilters />
 
       {/* Signal List */}
       {!signals || signals.length === 0 ? (
@@ -104,11 +150,16 @@ export default async function SignalsPage({
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {signalsWithBriefs.map((signal) => (
-            <SignalCard key={signal.id} signal={signal} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-3">
+            {signalsWithBriefs.map((signal) => (
+              <SignalCard key={signal.id} signal={signal} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <SignalPagination currentPage={page} totalPages={totalPages} />
+        </>
       )}
     </div>
   );

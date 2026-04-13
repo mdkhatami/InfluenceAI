@@ -1,10 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 
-interface RelevanceBadgeProps {
+interface RelevanceScoreBadgeProps {
   score: number;
 }
 
-export function RelevanceBadge({ score }: RelevanceBadgeProps) {
+export function RelevanceScoreBadge({ score }: RelevanceScoreBadgeProps) {
   const variant = score >= 8 ? 'success' : score >= 5 ? 'warning' : 'outline';
 
   return (

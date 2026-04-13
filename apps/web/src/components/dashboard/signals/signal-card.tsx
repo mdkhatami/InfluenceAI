@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RelevanceBadge } from './relevance-badge';
+import { RelevanceScoreBadge } from './relevance-score-badge';
 import { ExternalLink, CheckCircle } from 'lucide-react';
 
 interface SignalCardProps {
@@ -32,7 +32,7 @@ export function SignalCard({ signal }: SignalCardProps) {
               {signal.source_type}
             </Badge>
             {signal.scored_relevance !== null && (
-              <RelevanceBadge score={signal.scored_relevance} />
+              <RelevanceScoreBadge score={signal.scored_relevance} />
             )}
             <span className="text-xs text-zinc-500">{timeAgo}</span>
             {signal.has_research_brief && (
@@ -41,10 +41,6 @@ export function SignalCard({ signal }: SignalCardProps) {
           </div>
 
           <h3 className="text-sm font-medium text-zinc-50">{signal.title}</h3>
-
-          {signal.summary && (
-            <p className="text-xs text-zinc-400 line-clamp-2">{signal.summary}</p>
-          )}
 
           {signal.url && (
             <a
