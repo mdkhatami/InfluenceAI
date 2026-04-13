@@ -22,34 +22,6 @@ interface AnglePickerProps {
 
 export function AnglePicker({ briefId, angles, onSelect }: AnglePickerProps) {
   const [expanded, setExpanded] = useState(false);
-  const [generating, setGenerating] = useState(false);
-
-  const handleSelect = async (angleId: string) => {
-    if (onSelect) {
-      onSelect(angleId);
-      return;
-    }
-
-    // Default behavior: generate draft
-    setGenerating(true);
-    try {
-      const res = await fetch('/api/creation/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          researchBriefId: briefId,
-          angleCardId: angleId,
-          platform: 'linkedin',
-        }),
-      });
-      const result = await res.json();
-      if (result.contentItemId) {
-        window.location.href = '/review';
-      }
-    } catch {
-      setGenerating(false);
-    }
-  };
 
   return (
     <div className="space-y-3">
@@ -97,10 +69,9 @@ export function AnglePicker({ briefId, angles, onSelect }: AnglePickerProps) {
                   size="sm"
                   variant="outline"
                   className="w-full text-xs"
-                  onClick={() => handleSelect(angle.id)}
-                  disabled={generating}
+                  onClick={() => onSelect?.(angle.id)}
                 >
-                  {generating ? 'Generating...' : 'Select This Angle'}
+                  Select This Angle
                 </Button>
               </div>
             </div>
