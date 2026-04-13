@@ -17,9 +17,10 @@ interface AngleCard {
 interface AnglePickerProps {
   angles: AngleCard[];
   onSelect?: (angleId: string) => void;
+  disabled?: boolean;
 }
 
-export function AnglePicker({ angles, onSelect }: AnglePickerProps) {
+export function AnglePicker({ angles, onSelect, disabled = false }: AnglePickerProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -29,6 +30,7 @@ export function AnglePicker({ angles, onSelect }: AnglePickerProps) {
         size="sm"
         onClick={() => setExpanded(!expanded)}
         className="text-xs text-zinc-400 hover:text-zinc-300"
+        disabled={disabled}
       >
         {expanded ? (
           <>
@@ -69,8 +71,9 @@ export function AnglePicker({ angles, onSelect }: AnglePickerProps) {
                   variant="outline"
                   className="w-full text-xs"
                   onClick={() => onSelect?.(angle.id)}
+                  disabled={disabled}
                 >
-                  Select This Angle
+                  {disabled ? 'Generating...' : 'Select This Angle'}
                 </Button>
               </div>
             </div>

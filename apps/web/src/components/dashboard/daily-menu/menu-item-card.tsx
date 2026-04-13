@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AnglePicker } from './angle-picker';
@@ -38,6 +39,7 @@ const readinessConfig: Record<
 
 export function MenuItemCard({ item }: { item: DailyMenuItem }) {
   const router = useRouter();
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const config = readinessConfig[item.readiness] || readinessConfig.ready_to_post;
 
   // Special rendering for pick_an_angle items
@@ -61,10 +63,19 @@ export function MenuItemCard({ item }: { item: DailyMenuItem }) {
             </div>
           </div>
 
+          {isGeneratingDraft && (
+            <div className="text-xs text-zinc-400">
+              Generating draft...
+            </div>
+          )}
+
           {item.angleCards && item.angleCards.length > 0 && (
             <AnglePicker
               angles={item.angleCards}
               onSelect={async (angleId) => {
+                if (isGeneratingDraft) return;
+
+                setIsGeneratingDraft(true);
                 try {
                   const res = await fetch('/api/creation/draft', {
                     method: 'POST',
@@ -72,17 +83,23 @@ export function MenuItemCard({ item }: { item: DailyMenuItem }) {
                     body: JSON.stringify({
                       researchBriefId: item.researchBriefId,
                       angleCardId: angleId,
+                      platform: item.platforms?.[0] || 'linkedin',
                     }),
                   });
 
                   const result = await res.json();
                   if (result.contentItemId) {
                     router.push('/review');
+                  } else if (result.error) {
+                    console.error('Draft generation failed:', result.error);
                   }
                 } catch (err) {
                   console.error('Failed to generate draft:', err);
+                } finally {
+                  setIsGeneratingDraft(false);
                 }
               }}
+              disabled={isGeneratingDraft}
             />
           )}
         </div>
