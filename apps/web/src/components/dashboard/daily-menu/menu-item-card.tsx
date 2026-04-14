@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { AnglePicker } from './angle-picker';
 import type { DailyMenuItem } from '@/lib/types/daily-menu';
 
 const readinessConfig: Record<
@@ -37,8 +38,76 @@ const readinessConfig: Record<
 };
 
 export function MenuItemCard({ item }: { item: DailyMenuItem }) {
+  const router = useRouter();
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const config = readinessConfig[item.readiness] || readinessConfig.ready_to_post;
 
+  // Special rendering for pick_an_angle items
+  if (item.readiness === 'pick_an_angle') {
+    return (
+      <div className="rounded-lg border-l-4 border-l-violet-500 border border-zinc-800 bg-zinc-900 p-4">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 space-y-2">
+              <h3 className="text-sm font-medium text-zinc-50">{item.title}</h3>
+              <p className="text-xs text-zinc-400">{item.reason}</p>
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <span>{item.estimatedEffort}</span>
+                {item.platforms && item.platforms.length > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>{item.platforms.join(', ')}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isGeneratingDraft && (
+            <div className="text-xs text-zinc-400">
+              Generating draft...
+            </div>
+          )}
+
+          {item.angleCards && item.angleCards.length > 0 && (
+            <AnglePicker
+              angles={item.angleCards}
+              onSelect={async (angleId) => {
+                if (isGeneratingDraft) return;
+
+                setIsGeneratingDraft(true);
+                try {
+                  const res = await fetch('/api/creation/draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      researchBriefId: item.researchBriefId,
+                      angleCardId: angleId,
+                      platform: item.platforms?.[0] || 'linkedin',
+                    }),
+                  });
+
+                  const result = await res.json();
+                  if (result.contentItemId) {
+                    router.push('/review');
+                  } else if (result.error) {
+                    console.error('Draft generation failed:', result.error);
+                  }
+                } catch (err) {
+                  console.error('Failed to generate draft:', err);
+                } finally {
+                  setIsGeneratingDraft(false);
+                }
+              }}
+              disabled={isGeneratingDraft}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Default rendering for other readiness types
   return (
     <div
       className={`rounded-lg border border-zinc-800 bg-zinc-900 p-4 border-l-4 ${config.borderColor}`}
@@ -79,7 +148,8 @@ function MenuActions({ item }: { item: DailyMenuItem }) {
       );
 
     case 'pick_an_angle':
-      return <AnglePickerInline item={item} />;
+      // Handled in MenuItemCard component directly
+      return null;
 
     case 'callback':
       return (
@@ -122,88 +192,3 @@ function MenuActions({ item }: { item: DailyMenuItem }) {
   }
 }
 
-function AnglePickerInline({ item }: { item: DailyMenuItem }) {
-  const [expanded, setExpanded] = useState(false);
-  const [generating, setGenerating] = useState(false);
-
-  const handleSelect = async (angleId: string) => {
-    setGenerating(true);
-    try {
-      const res = await fetch('/api/creation/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          researchBriefId: item.researchBriefId,
-          angleCardId: angleId,
-          platform: 'linkedin',
-        }),
-      });
-      const result = await res.json();
-      if (result.contentItemId) {
-        window.location.href = '/review';
-      }
-    } catch {
-      setGenerating(false);
-    }
-  };
-
-  if (!expanded) {
-    return (
-      <div className="flex gap-2 mt-3">
-        <Button size="sm" onClick={() => setExpanded(true)}>
-          View {item.angleCards?.length || 0} Angles
-        </Button>
-        <Button size="sm" variant="outline">
-          Skip
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-3 mt-3">
-      {(item.angleCards || []).map((card: Record<string, unknown>) => (
-        <div
-          key={card.id as string}
-          className="p-3 rounded-lg bg-zinc-800 border border-zinc-700"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-violet-400 uppercase">
-              {(String(card.angle_type || '')).replace(/_/g, ' ')}
-            </span>
-            <span
-              className={`text-xs ${
-                card.estimated_engagement === 'high'
-                  ? 'text-green-400'
-                  : card.estimated_engagement === 'medium'
-                    ? 'text-amber-400'
-                    : 'text-zinc-500'
-              }`}
-            >
-              {card.estimated_engagement as string} engagement
-            </span>
-          </div>
-          <p className="text-zinc-100 mt-1 font-medium">
-            &ldquo;{card.hook as string}&rdquo;
-          </p>
-          <p className="text-zinc-400 text-sm mt-1">{card.thesis as string}</p>
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-zinc-500">
-              via {card.domain_source as string} agent
-            </span>
-            <Button
-              size="sm"
-              onClick={() => handleSelect(card.id as string)}
-              disabled={generating}
-            >
-              {generating ? 'Generating...' : 'Select'}
-            </Button>
-          </div>
-        </div>
-      ))}
-      <Button size="sm" variant="outline" onClick={() => setExpanded(false)}>
-        Collapse
-      </Button>
-    </div>
-  );
-}
