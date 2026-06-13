@@ -18,6 +18,29 @@ actions) block a credible demo/MVP.
 
 ---
 
+## Implementation progress (branch `claude/project-review-roadmap-3dvkp`)
+
+- **P0 — done.** Daily-menu actions wired (no dead clicks) + `/review` 404 fixes;
+  responsive overlay sidebar; stub pipelines shown as "Coming soon"; Settings
+  integrations + prompt-template UIs mounted; manual-publish composer deep-links;
+  full route titles.
+- **P1 — done.** CI workflow; ESLint + Prettier (lints clean); pipeline runner
+  bounded-concurrency + in-batch idempotency (with unit tests); structured logger
+  + cron-failure webhook alerting; Vercel Analytics; LiteLLM master key moved to
+  env; docs (this file, CLAUDE.md, README) refreshed. *Deferred:* full
+  frontend/Playwright e2e suite (needs the team's CI runner with browsers); broad
+  `db: any` → typed-client / zod sweep (started conceptually, large surface).
+- **P2 — partial.** Analytics page shipped (built from real content/pipeline data).
+  *Out of scope per owner:* auto-publish, multi-tenant SaaS. *Deferred:* job queue,
+  implementing more pipelines.
+
+Corrections to the original findings after deeper verification: cron routes **are**
+authenticated (`verifyCronAuth` + `CRON_SECRET`, fails closed); the approve/reject/
+publish workflow **is** wired (`PUT /api/content/[id]`); base-table RLS **is**
+present (see item 8).
+
+---
+
 ## 1. Current System Assessment
 
 **Architecture (strong).** Clean monorepo. 1 app + **7 packages** (not the 3 the
@@ -91,9 +114,11 @@ Instagram, YouTube, Twitter with varying levels of automation."
    packages only; the actual user-facing surface is untested.
 7. **No error tracking / observability** — only `console.*`. No Sentry, no cron
    failure alerting, no Web Vitals. A failed nightly cron is invisible.
-8. **Base-schema RLS gap** — `00001` core tables (`content_items`,
-   `content_signals`, `pipeline_runs`, …) have **no RLS policies**; only v2+ tables
-   do. Acceptable for solo use but should be made consistent and documented.
+8. ~~**Base-schema RLS gap**~~ — **Corrected on review:** the `00001` core tables
+   *do* get RLS + authenticated-user policies in `00002` (lines 87–110), so RLS is
+   actually consistent. Caveat: `00002` uses `CREATE POLICY IF NOT EXISTS`, which is
+   not valid Postgres syntax and will error on a fresh migration run — apply those
+   policies via the Supabase dashboard if needed.
 9. **Dev secret in repo** — `litellm-config.yaml` has `master_key: sk-influence-ai-dev`
    (dev-only, but should be env-driven before any shared deployment).
 
