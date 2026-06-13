@@ -8,9 +8,13 @@
     "type-check": "turbo type-check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "seed:templates": "tsx packages/database/src/seed/prompt-templates.ts"
   },
   "devDependencies": {
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.4",
     "tsx": "^4.21.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0",

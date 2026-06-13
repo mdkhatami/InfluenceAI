@@ -23,6 +23,7 @@ import { deduplicateSignals } from './dedup';
 import { scoreRelevance } from './relevance';
 import { getPillar } from '@influenceai/core';
 import { buildPromptFromBrief } from './brief-prompt';
+import { mapWithConcurrency } from './concurrency';
 
 export async function runPipeline(definition: PipelineDefinition): Promise<PipelineRunResult> {
   const startTime = Date.now();
@@ -140,13 +141,25 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
     signalsFiltered = topSignals.length;
     await logPipelineStep(db, runId, 'filter', 'info', `Filtered to top ${topSignals.length} signals`);
 
-    // STEP 4: GENERATE (per signal, per platform — sequential)
+    // Idempotency: drop any duplicate signals within this batch so a single
+    // run never generates the same content twice (cross-run duplicates are
+    // already prevented by the dedup-hash step above).
+    const seenHashes = new Set<string>();
+    const uniqueSignals = topSignals.filter((s) => {
+      const h = computeDedupeHash(s);
+      if (seenHashes.has(h)) return false;
+      seenHashes.add(h);
+      return true;
+    });
+
+    // STEP 4: GENERATE (per signal, per platform — bounded concurrency)
+    const concurrency = definition.generate.concurrency ?? 3;
     await logPipelineStep(
       db,
       runId,
       'generate',
       'info',
-      `Generating content for ${topSignals.length} signals x ${definition.platforms.length} platforms`,
+      `Generating content for ${uniqueSignals.length} signals x ${definition.platforms.length} platforms (concurrency: ${concurrency})`,
     );
 
     const llm = definition.generate.model
@@ -155,14 +168,17 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
 
     const pillar = getPillar(definition.pillar);
 
-    for (const signal of topSignals) {
+    const perSignal = await mapWithConcurrency(uniqueSignals, concurrency, async (signal) => {
+      const localErrors: string[] = [];
+      let generated = 0;
+
       // Save signal to DB
       let signalId: string;
       try {
         signalId = await upsertSignalWithScore(db, signal, (signal as ScoredSignal).score ?? 0);
       } catch (err) {
-        errors.push(`Failed to save signal ${signal.sourceId}: ${err}`);
-        continue;
+        localErrors.push(`Failed to save signal ${signal.sourceId}: ${err}`);
+        return { generated, errors: localErrors };
       }
 
       // Optional: dispatch investigation swarm for richer content
@@ -176,57 +192,67 @@ export async function runPipeline(definition: PipelineDefinition): Promise<Pipel
         // Fall through — researchBrief stays undefined, use old path
       }
 
-      for (const platform of definition.platforms) {
-        try {
-          // Get prompt template (DB first, fallback to pillar default)
-          const dbTemplate = await getActiveTemplate(db, definition.pillar, platform);
-          const template = dbTemplate ?? {
-            systemPrompt: pillar?.promptTemplates?.default ?? 'You are an AI content writer.',
-            userPromptTemplate: `{{platform_format}}\n\nSignal: {{signal_title}}\nSummary: {{signal_summary}}\nURL: {{signal_url}}\nMetadata: {{signal_metadata}}`,
-          };
+      // Platforms are few (1–4) — generate them in parallel per signal.
+      await Promise.all(
+        definition.platforms.map(async (platform) => {
+          try {
+            // Get prompt template (DB first, fallback to pillar default)
+            const dbTemplate = await getActiveTemplate(db, definition.pillar, platform);
+            const template = dbTemplate ?? {
+              systemPrompt: pillar?.promptTemplates?.default ?? 'You are an AI content writer.',
+              userPromptTemplate: `{{platform_format}}\n\nSignal: {{signal_title}}\nSummary: {{signal_summary}}\nURL: {{signal_url}}\nMetadata: {{signal_metadata}}`,
+            };
 
-          // Use brief-aware prompt if investigation succeeded, otherwise fall back
-          const { systemPrompt, userPrompt } = researchBrief
-            ? buildPromptFromBrief(
-                { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
-                researchBrief,
-                platform as Platform,
-              )
-            : buildPrompt(
-                { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
-                signal,
-                platform,
-              );
+            // Use brief-aware prompt if investigation succeeded, otherwise fall back
+            const { systemPrompt, userPrompt } = researchBrief
+              ? buildPromptFromBrief(
+                  { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
+                  researchBrief,
+                  platform as Platform,
+                )
+              : buildPrompt(
+                  { systemPrompt: template.systemPrompt, userPromptTemplate: template.userPromptTemplate },
+                  signal,
+                  platform,
+                );
 
-          const result = await llm.generateWithQuality({
-            systemPrompt,
-            userPrompt,
-            maxTokens: definition.generate.maxTokens,
-            temperature: definition.generate.temperature,
-          });
+            const result = await llm.generateWithQuality({
+              systemPrompt,
+              userPrompt,
+              maxTokens: definition.generate.maxTokens,
+              temperature: definition.generate.temperature,
+            });
 
-          await insertContentItem(db, {
-            title: signal.title.slice(0, 200),
-            body: result.content,
-            pillarSlug: definition.pillar,
-            pipelineSlug: definition.id,
-            platform,
-            format: platform === 'twitter' ? 'thread' : platform === 'instagram' ? 'carousel' : 'text_post',
-            status: 'pending_review',
-            signalId,
-            pipelineRunId: runId,
-            promptTemplateId: dbTemplate?.id,
-            generationModel: result.model,
-            qualityScore: result.qualityScore,
-            tokenUsage: result.usage ?? { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-          });
+            await insertContentItem(db, {
+              title: signal.title.slice(0, 200),
+              body: result.content,
+              pillarSlug: definition.pillar,
+              pipelineSlug: definition.id,
+              platform,
+              format: platform === 'twitter' ? 'thread' : platform === 'instagram' ? 'carousel' : 'text_post',
+              status: 'pending_review',
+              signalId,
+              pipelineRunId: runId,
+              promptTemplateId: dbTemplate?.id,
+              generationModel: result.model,
+              qualityScore: result.qualityScore,
+              tokenUsage: result.usage ?? { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            });
 
-          itemsGenerated++;
-        } catch (err) {
-          errors.push(`Failed to generate for ${signal.sourceId}/${platform}: ${err}`);
-          await logPipelineStep(db, runId, 'generate', 'error', `Failed: ${signal.sourceId}/${platform}: ${err}`);
-        }
-      }
+            generated++;
+          } catch (err) {
+            localErrors.push(`Failed to generate for ${signal.sourceId}/${platform}: ${err}`);
+            await logPipelineStep(db, runId, 'generate', 'error', `Failed: ${signal.sourceId}/${platform}: ${err}`);
+          }
+        }),
+      );
+
+      return { generated, errors: localErrors };
+    });
+
+    for (const r of perSignal) {
+      itemsGenerated += r.generated;
+      errors.push(...r.errors);
     }
 
     await logPipelineStep(db, runId, 'generate', 'info', `Generated ${itemsGenerated} content items`);

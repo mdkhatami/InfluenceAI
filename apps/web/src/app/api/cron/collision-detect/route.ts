@@ -3,6 +3,7 @@ import { getServiceClient } from '@influenceai/database';
 import { LLMClient } from '@influenceai/integrations';
 import { detectCollisions } from '@influenceai/memory';
 import { verifyCronAuth } from '../_lib/auth';
+import { reportError } from '@/lib/logger';
 
 export const maxDuration = 300;
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
       collisionsFound: collisions.length,
     });
   } catch (error) {
-    console.error('[cron] collision-detect failed:', error);
+    await reportError('cron/collision-detect', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Pipeline failed' },
       { status: 500 },

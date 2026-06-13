@@ -6,6 +6,7 @@ import { runPipeline, githubTrendsPipeline, signalAmplifierPipeline, releaseRada
 import { assembleDailyMenu, detectCallbacks } from '@/lib/queries/daily-menu';
 import type { BatchResult } from '@/lib/types/daily-menu';
 import { verifyCronAuth } from '../_lib/auth';
+import { reportError } from '@/lib/logger';
 
 export const maxDuration = 300;
 
@@ -85,6 +86,7 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     results.status = 'failed';
     results.error = error instanceof Error ? error.message : String(error);
+    await reportError('cron/overnight-batch', error);
   }
 
   return NextResponse.json(results);

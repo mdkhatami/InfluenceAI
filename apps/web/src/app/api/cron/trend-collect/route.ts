@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServiceClient } from '@influenceai/database';
 import { collectTrendData } from '@influenceai/memory';
 import { verifyCronAuth } from '../_lib/auth';
+import { reportError } from '@/lib/logger';
 
 export const maxDuration = 300;
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
       errors: result.errors,
     });
   } catch (error) {
-    console.error('[cron] trend-collect failed:', error);
+    await reportError('cron/trend-collect', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Pipeline failed' },
       { status: 500 },

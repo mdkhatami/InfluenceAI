@@ -20,6 +20,8 @@ export interface PipelineDefinition {
     maxTokens: number;
     temperature: number;
     topK: number;
+    /** Max signals generated in parallel. Defaults to 3. */
+    concurrency?: number;
   };
 }
 
