@@ -15,6 +15,7 @@ import {
   LogOut,
   Inbox,
   TrendingUp,
+  BarChart3,
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { label: 'Content', icon: FileText, href: '/content' },
   { label: 'Pipelines', icon: Workflow, href: '/pipelines' },
   { label: 'Trends', icon: TrendingUp, href: '/trends' },
+  { label: 'Analytics', icon: BarChart3, href: '/analytics' },
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 

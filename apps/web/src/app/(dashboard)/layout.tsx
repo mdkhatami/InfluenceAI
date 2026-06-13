@@ -13,6 +13,7 @@ const routeMeta: Record<string, { title: string; subtitle?: string }> = {
   '/content': { title: 'Content', subtitle: 'Library' },
   '/pipelines': { title: 'Pipelines', subtitle: 'Automation' },
   '/trends': { title: 'Trends', subtitle: 'Tracking' },
+  '/analytics': { title: 'Analytics', subtitle: 'Insights' },
   '/settings': { title: 'Settings', subtitle: 'Configuration' },
 };
 
