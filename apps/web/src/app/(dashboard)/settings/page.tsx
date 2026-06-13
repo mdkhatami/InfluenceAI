@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { PILLARS } from '@influenceai/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { PromptTemplateEditor } from '@/components/settings/prompt-template-editor';
+import { IntegrationConfigDialog } from '@/components/settings/integration-config-dialog';
 import { cn, getPillarColor } from '@/lib/utils';
 import {
   User,
@@ -18,6 +21,20 @@ interface UserInfo {
   email: string;
   name: string;
   avatarUrl?: string;
+}
+
+const INTEGRATION_SERVICES: { service: string; name: string }[] = [
+  { service: 'litellm', name: 'LLM (LiteLLM / OpenAI)' },
+  { service: 'github', name: 'GitHub' },
+  { service: 'buffer', name: 'Buffer' },
+  { service: 'twitter', name: 'Twitter / X' },
+  { service: 'telegram', name: 'Telegram' },
+  { service: 'elevenlabs', name: 'ElevenLabs' },
+];
+
+interface IntegrationState {
+  config: Record<string, unknown>;
+  is_active: boolean;
 }
 
 export default function SettingsPage() {
@@ -33,6 +50,52 @@ export default function SettingsPage() {
   );
   const [pillarsLoading, setPillarsLoading] = useState(true);
   const [pillarSaving, setPillarSaving] = useState<string | null>(null);
+
+  // Integration state
+  const [integrations, setIntegrations] = useState<Record<string, IntegrationState>>({});
+  const [dialogService, setDialogService] = useState<string | null>(null);
+
+  // Load integrations
+  useEffect(() => {
+    async function loadIntegrations() {
+      try {
+        const res = await fetch('/api/settings/integrations');
+        if (res.ok) {
+          const data = await res.json();
+          const map: Record<string, IntegrationState> = {};
+          for (const row of (data.integrations ?? []) as Array<{
+            service: string;
+            config: Record<string, unknown> | null;
+            is_active: boolean;
+          }>) {
+            map[row.service] = { config: row.config ?? {}, is_active: row.is_active };
+          }
+          setIntegrations(map);
+        }
+      } catch {
+        // Use empty defaults
+      }
+    }
+    loadIntegrations();
+  }, []);
+
+  const handleSaveIntegration = async (
+    service: string,
+    config: Record<string, unknown>,
+    isActive: boolean,
+  ) => {
+    const res = await fetch('/api/settings/integrations', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service, config, is_active: isActive }),
+    });
+    if (!res.ok) {
+      toast.error('Failed to save integration');
+      throw new Error('Failed to save integration');
+    }
+    setIntegrations((prev) => ({ ...prev, [service]: { config, is_active: isActive } }));
+    toast.success('Integration saved');
+  };
 
   // Load user
   useEffect(() => {
@@ -236,6 +299,74 @@ export default function SettingsPage() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Integrations Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Integrations</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0 p-0">
+          {INTEGRATION_SERVICES.map((svc, i) => {
+            const cfg = integrations[svc.service];
+            const configured = !!cfg && Object.keys(cfg.config || {}).length > 0;
+            return (
+              <div key={svc.service}>
+                <div className="flex items-center justify-between px-6 py-4 transition hover:bg-zinc-800/30">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-50">{svc.name}</h3>
+                    <p className="mt-0.5 text-xs">
+                      {configured ? (
+                        cfg.is_active ? (
+                          <span className="text-emerald-400">Active</span>
+                        ) : (
+                          <span className="text-zinc-500">Configured · disabled</span>
+                        )
+                      ) : (
+                        <span className="text-zinc-500">Not configured</span>
+                      )}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDialogService(svc.service)}
+                  >
+                    {configured ? 'Edit' : 'Configure'}
+                  </Button>
+                </div>
+                {i < INTEGRATION_SERVICES.length - 1 && <Separator />}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Prompt Templates Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Prompt Templates</CardTitle>
+          <p className="text-sm text-zinc-400">
+            Customize how content is generated per pillar and platform.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <PromptTemplateEditor />
+        </CardContent>
+      </Card>
+
+      {/* Integration config dialog */}
+      {dialogService && (
+        <IntegrationConfigDialog
+          service={dialogService}
+          serviceName={
+            INTEGRATION_SERVICES.find((s) => s.service === dialogService)?.name ?? dialogService
+          }
+          currentConfig={integrations[dialogService]?.config ?? {}}
+          isActive={integrations[dialogService]?.is_active ?? true}
+          onClose={() => setDialogService(null)}
+          onSave={handleSaveIntegration}
+        />
+      )}
     </div>
   );
 }

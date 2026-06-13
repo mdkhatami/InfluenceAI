@@ -13,6 +13,7 @@ import {
   Send,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ReviewActionsProps {
@@ -20,13 +21,43 @@ interface ReviewActionsProps {
   currentStatus: string;
   nextId: string | null;
   body: string;
+  platform: string;
 }
+
+// Per-platform composer deep links. `prefill: true` means the platform accepts
+// the post text via the URL; otherwise we copy to the clipboard for pasting.
+const COMPOSER: Record<
+  string,
+  { label: string; prefill: boolean; url: (text: string) => string }
+> = {
+  twitter: {
+    label: 'Open in X',
+    prefill: true,
+    url: (text) => `https://x.com/intent/post?text=${encodeURIComponent(text)}`,
+  },
+  linkedin: {
+    label: 'Open in LinkedIn',
+    prefill: false,
+    url: () => 'https://www.linkedin.com/feed/?shareActive=true',
+  },
+  instagram: {
+    label: 'Open Instagram',
+    prefill: false,
+    url: () => 'https://www.instagram.com/',
+  },
+  youtube: {
+    label: 'Open YouTube Studio',
+    prefill: false,
+    url: () => 'https://studio.youtube.com/',
+  },
+};
 
 export function ReviewActions({
   contentId,
   currentStatus,
   nextId,
   body,
+  platform,
 }: ReviewActionsProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -66,6 +97,22 @@ export function ReviewActions({
     } catch {
       toast.error('Failed to copy — try selecting the text manually');
     }
+  };
+
+  const handleOpenComposer = async () => {
+    const composer = COMPOSER[platform];
+    if (!composer) return;
+    // Platforms without text prefill: drop the post on the clipboard to paste.
+    if (!composer.prefill) {
+      try {
+        await navigator.clipboard.writeText(body);
+        toast.success('Copied — paste into the composer');
+      } catch {
+        // Non-fatal — the composer still opens
+      }
+    }
+    setShowPublish(true);
+    window.open(composer.url(body), '_blank', 'noopener,noreferrer');
   };
 
   const handleApprove = async () => {
@@ -143,6 +190,20 @@ export function ReviewActions({
             </>
           )}
         </Button>
+
+        {/* Open platform composer (manual publish) */}
+        {COMPOSER[platform] && (
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleOpenComposer}
+            disabled={isLoading}
+            className="border-zinc-700 bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            {COMPOSER[platform].label}
+          </Button>
+        )}
 
         {/* Mark as Published — appears after copy */}
         {showPublish && (

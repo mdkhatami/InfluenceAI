@@ -37,7 +37,12 @@ const readinessConfig: Record<
   },
 };
 
-export function MenuItemCard({ item }: { item: DailyMenuItem }) {
+interface MenuItemCardProps {
+  item: DailyMenuItem;
+  onDismiss?: (id: string) => void;
+}
+
+export function MenuItemCard({ item, onDismiss }: MenuItemCardProps) {
   const router = useRouter();
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const config = readinessConfig[item.readiness] || readinessConfig.ready_to_post;
@@ -89,7 +94,7 @@ export function MenuItemCard({ item }: { item: DailyMenuItem }) {
 
                   const result = await res.json();
                   if (result.contentItemId) {
-                    router.push('/review');
+                    router.push(`/review/${result.contentItemId}`);
                   } else if (result.error) {
                     console.error('Draft generation failed:', result.error);
                   }
@@ -124,24 +129,31 @@ export function MenuItemCard({ item }: { item: DailyMenuItem }) {
       </div>
       <h3 className="text-lg font-medium text-zinc-100 mt-1">{item.title}</h3>
       <p className="text-sm text-zinc-400 mt-1">{item.reason}</p>
-      <MenuActions item={item} />
+      <MenuActions item={item} onDismiss={onDismiss} />
     </div>
   );
 }
 
-function MenuActions({ item }: { item: DailyMenuItem }) {
+function MenuActions({
+  item,
+  onDismiss,
+}: {
+  item: DailyMenuItem;
+  onDismiss?: (id: string) => void;
+}) {
   const router = useRouter();
+  const dismiss = () => onDismiss?.(item.id);
 
   switch (item.readiness) {
     case 'ready_to_post':
       return (
         <div className="flex gap-2 mt-3">
           {item.draftId && (
-            <Button size="sm" onClick={() => router.push('/review')}>
+            <Button size="sm" onClick={() => router.push(`/review/${item.draftId}`)}>
               Review Draft
             </Button>
           )}
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={dismiss}>
             Skip
           </Button>
         </div>
@@ -154,8 +166,12 @@ function MenuActions({ item }: { item: DailyMenuItem }) {
     case 'callback':
       return (
         <div className="flex gap-2 mt-3">
-          <Button size="sm">Write Follow-Up</Button>
-          <Button size="sm" variant="outline">
+          {item.predictionId && (
+            <Button size="sm" onClick={() => router.push(`/review/${item.predictionId}`)}>
+              View Original Post
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={dismiss}>
             Dismiss
           </Button>
         </div>
@@ -164,12 +180,11 @@ function MenuActions({ item }: { item: DailyMenuItem }) {
     case 'trend_alert':
       return (
         <div className="flex gap-2 mt-3">
-          <Button size="sm">Write Post</Button>
-          <Button size="sm" variant="outline">
-            Track Silently
+          <Button size="sm" onClick={() => router.push('/trends')}>
+            View Trend
           </Button>
-          <Button size="sm" variant="outline">
-            Skip
+          <Button size="sm" variant="outline" onClick={dismiss}>
+            Track Silently
           </Button>
         </div>
       );
@@ -177,11 +192,10 @@ function MenuActions({ item }: { item: DailyMenuItem }) {
     case 'story_seed':
       return (
         <div className="flex gap-2 mt-3">
-          <Button size="sm">Develop Story</Button>
-          <Button size="sm" variant="outline">
-            See Research
+          <Button size="sm" onClick={() => router.push('/trends')}>
+            Explore Trends
           </Button>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={dismiss}>
             Skip
           </Button>
         </div>

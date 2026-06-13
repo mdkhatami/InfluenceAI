@@ -5,13 +5,18 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn, getRelativeTime } from '@/lib/utils';
-import { PIPELINE_MAP } from '@influenceai/core';
+import { PIPELINE_MAP, PIPELINES } from '@influenceai/core';
 import { getLastRunPerPipeline, getPipelineStats } from '@/lib/queries/pipelines';
 import { PipelineTriggerButton } from '@/components/dashboard/pipeline-trigger-button';
 import {
   GitBranch,
   Radio,
   Radar,
+  Video,
+  Target,
+  Mic,
+  LayoutGrid,
+  UserCircle,
   ArrowRight,
   Clock,
   Zap,
@@ -27,6 +32,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   GitBranch,
   Radio,
   Radar,
+  Video,
+  Target,
+  Mic,
+  LayoutGrid,
+  UserCircle,
 };
 
 const pipelineColors: Record<string, string> = {
@@ -90,6 +100,9 @@ export default async function PipelinesPage() {
   }
 
   const pipelines = IMPLEMENTED_SLUGS.map((slug) => PIPELINE_MAP.get(slug)!).filter(Boolean);
+  const comingSoon = PIPELINES.filter(
+    (p) => !IMPLEMENTED_SLUGS.includes(p.slug as (typeof IMPLEMENTED_SLUGS)[number]),
+  );
 
   return (
     <div className="space-y-6">
@@ -183,6 +196,55 @@ export default async function PipelinesPage() {
           );
         })}
       </div>
+
+      {/* Coming soon */}
+      {comingSoon.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+              Coming soon
+            </h2>
+            <p className="mt-1 text-xs text-zinc-600">
+              On the roadmap — not yet active.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {comingSoon.map((pipeline) => {
+              const Icon = iconMap[pipeline.icon] || GitBranch;
+              return (
+                <Card
+                  key={pipeline.slug}
+                  className="flex flex-col overflow-hidden opacity-60"
+                  aria-disabled="true"
+                >
+                  <div className="h-1 bg-zinc-800" />
+                  <CardContent className="flex-1 p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-lg bg-zinc-800 p-2.5 text-zinc-400">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-zinc-200">{pipeline.name}</h3>
+                        <Badge variant="secondary" className="mt-1">
+                          Coming soon
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-500 line-clamp-3">
+                      {pipeline.description}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="border-t border-zinc-800 px-6 py-4">
+                    <Button variant="outline" size="sm" className="w-full" disabled>
+                      Not yet available
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

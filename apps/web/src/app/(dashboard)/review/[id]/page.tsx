@@ -248,6 +248,7 @@ export default async function ReviewDetailPage({
               currentStatus={item.status}
               nextId={nextId}
               body={item.body ?? ''}
+              platform={item.platform}
             />
           </div>
         </div>

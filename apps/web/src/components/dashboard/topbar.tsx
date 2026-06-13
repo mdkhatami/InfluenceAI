@@ -1,23 +1,34 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Search, Bell, User } from 'lucide-react';
+import { Search, Bell, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TopbarProps {
   title: string;
   subtitle?: string;
+  onMenuClick?: () => void;
 }
 
-export function Topbar({ title, subtitle }: TopbarProps) {
+export function Topbar({ title, subtitle, onMenuClick }: TopbarProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-zinc-800 px-6">
-      {/* Left: Title */}
-      <div>
-        {subtitle && (
-          <p className="text-xs text-zinc-500 mb-0.5">{subtitle}</p>
-        )}
-        <h1 className="text-lg font-semibold text-zinc-50">{title}</h1>
+    <header className="flex h-16 items-center justify-between border-b border-zinc-800 px-4 sm:px-6">
+      {/* Left: Mobile menu toggle + Title */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-zinc-400 hover:text-zinc-50 lg:hidden"
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div>
+          {subtitle && (
+            <p className="text-xs text-zinc-500 mb-0.5">{subtitle}</p>
+          )}
+          <h1 className="text-lg font-semibold text-zinc-50">{title}</h1>
+        </div>
       </div>
 
       {/* Right: Actions */}

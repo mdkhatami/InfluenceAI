@@ -1,15 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { MenuHeader } from './menu-header';
 import { MenuItemCard } from './menu-item-card';
 import { Button } from '@/components/ui/button';
 import type { DailyMenu } from '@/lib/types/daily-menu';
 
+function dismissKey(date: string) {
+  return `dailyMenuDismissed:${date}`;
+}
+
 export function DailyMenuContainer() {
   const [menu, setMenu] = useState<DailyMenu | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -27,14 +33,49 @@ export function DailyMenuContainer() {
     fetchMenu();
   }, []);
 
+  // Load any items the user already dismissed today so they stay hidden on reload.
+  useEffect(() => {
+    if (!menu?.date) return;
+    try {
+      const raw = localStorage.getItem(dismissKey(menu.date));
+      if (raw) setDismissed(new Set(JSON.parse(raw)));
+    } catch {
+      // localStorage unavailable — dismissals just won't persist
+    }
+  }, [menu?.date]);
+
+  const dismissItem = (id: string) => {
+    setDismissed((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      if (menu?.date) {
+        try {
+          localStorage.setItem(dismissKey(menu.date), JSON.stringify([...next]));
+        } catch {
+          // ignore persistence failure
+        }
+      }
+      return next;
+    });
+    toast.success('Dismissed from today’s menu');
+  };
+
   const regenerateMenu = async () => {
     setRegenerating(true);
     try {
       const res = await fetch('/api/daily-menu', { method: 'POST' });
       const data = await res.json();
       setMenu(data.menu);
+      setDismissed(new Set());
+      if (data.menu?.date) {
+        try {
+          localStorage.removeItem(dismissKey(data.menu.date));
+        } catch {
+          // ignore
+        }
+      }
     } catch {
-      // Handle error
+      toast.error('Failed to refresh menu');
     } finally {
       setRegenerating(false);
     }
@@ -68,6 +109,8 @@ export function DailyMenuContainer() {
     );
   }
 
+  const visibleItems = menu.items.filter((item) => !dismissed.has(item.id));
+
   return (
     <div>
       <MenuHeader stats={menu.stats} date={menu.date} />
@@ -81,11 +124,20 @@ export function DailyMenuContainer() {
           {regenerating ? 'Refreshing...' : 'Refresh Menu'}
         </Button>
       </div>
-      <div className="space-y-4">
-        {menu.items.map((item) => (
-          <MenuItemCard key={item.id} item={item} />
-        ))}
-      </div>
+      {visibleItems.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/50 p-8 text-center">
+          <h3 className="text-sm font-medium text-zinc-200">All caught up</h3>
+          <p className="text-xs text-zinc-500 mt-1">
+            You&apos;ve cleared every item on today&apos;s menu.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleItems.map((item) => (
+            <MenuItemCard key={item.id} item={item} onDismiss={dismissItem} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
